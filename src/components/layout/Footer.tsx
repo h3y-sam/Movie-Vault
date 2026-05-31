@@ -1,0 +1,138 @@
+'use client';
+
+import Link from 'next/link';
+import { useSettingsStore } from '@/store/settingsStore';
+
+export default function Footer() {
+  const { theme, toggleTheme, language, setLanguage } = useSettingsStore();
+
+  const footerLinks = [
+    {
+      title: 'Navigate',
+      links: [
+        { label: 'Home', href: '/' },
+        { label: 'Movies', href: '/movies' },
+        { label: 'TV Series', href: '/series' },
+        { label: 'Anime', href: '/anime' },
+      ],
+    },
+    {
+      title: 'Categories',
+      links: [
+        { label: 'Bollywood', href: '/bollywood' },
+        { label: 'Hollywood', href: '/movies' },
+        { label: 'K-Drama', href: '/series' },
+        { label: 'Documentaries', href: '/movies' },
+      ],
+    },
+    {
+      title: 'Account & Vibe',
+      links: [
+        { label: 'My Watchlist', href: '/watchlist' },
+        { 
+          label: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, 
+          href: '#', 
+          onClick: (e: React.MouseEvent) => {
+            e.preventDefault();
+            toggleTheme();
+          } 
+        },
+        { label: 'Privacy Policy', href: '#' },
+      ],
+    },
+  ];
+
+  return (
+    <footer className="bg-sv-bg border-t border-sv-border mt-20 pb-24 md:pb-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-12">
+        {/* Links Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+          {footerLinks.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-sv-text-secondary text-xs font-bold uppercase tracking-wider mb-4">
+                {section.title}
+              </h3>
+              <ul className="space-y-2.5">
+                {section.links.map((link) => (
+                  <li key={link.label}>
+                    {link.onClick ? (
+                      <button
+                        onClick={link.onClick}
+                        className="text-sv-text-muted text-sm hover:text-sv-text transition-colors duration-200 cursor-pointer bg-transparent border-none p-0 text-left font-medium"
+                      >
+                        {link.label}
+                      </button>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-sv-text-muted text-sm hover:text-sv-text transition-colors duration-200 font-medium"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          {/* Brand Column */}
+          <div>
+            <h3 className="text-sv-text-secondary text-xs font-bold uppercase tracking-wider mb-4">
+              Movie Vault
+            </h3>
+            <p className="text-sv-text-muted text-sm leading-relaxed font-medium">
+              Your personal streaming universe. All movies, all series, all in one place.
+            </p>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-sv-border pt-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <span className="text-sv-red font-black text-lg">MOVIE</span>
+              <span className="text-sv-text font-light text-lg">VAULT</span>
+            </div>
+
+            {/* Language Selector Dropdown */}
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs text-sv-text-muted font-semibold uppercase tracking-wider">Language:</span>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="bg-sv-card border border-sv-border rounded px-3 py-1.5 text-xs text-sv-text outline-none cursor-pointer hover:bg-sv-card-hover font-semibold transition-colors"
+              >
+                <option value="en">English</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="ta">தமிழ் (Tamil)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+              </select>
+            </div>
+
+            {/* TMDB Attribution */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-[#032541] px-3 py-1.5 rounded-md">
+                <svg width="20" height="18" viewBox="0 0 185.04 133.4" fill="none">
+                  <linearGradient id="tmdb-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#90cea1" />
+                    <stop offset="50%" stopColor="#3cbec9" />
+                    <stop offset="100%" stopColor="#00b3e5" />
+                  </linearGradient>
+                  <circle cx="92.52" cy="66.7" r="50" stroke="url(#tmdb-gradient)" strokeWidth="8" fill="none" />
+                </svg>
+                <span className="text-white text-xs font-bold">TMDB</span>
+              </div>
+            </div>
+
+            {/* Copyright */}
+            <p className="text-sv-text-dim text-xs text-center font-medium">
+              This product uses the TMDB API but is not endorsed or certified by TMDB.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}

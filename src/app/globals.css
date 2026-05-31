@@ -1,0 +1,356 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+/* ─── Movie Vault Design System ─── */
+:root {
+  /* Core Palette (Dark Mode Default) */
+  --sv-bg-primary: #0a0a0a;
+  --sv-bg-secondary: #141414;
+  --sv-bg-card: #181818;
+  --sv-bg-card-hover: #252525;
+  --sv-bg-elevated: #1a1a2e;
+  --sv-bg-surface: #1c1c1c;
+
+  /* Brand */
+  --sv-red: #e50914;
+  --sv-red-hover: #f40612;
+  --sv-red-dark: #b20710;
+  --sv-gold: #ffd700;
+
+  /* Text */
+  --sv-text-primary: #ffffff;
+  --sv-text-secondary: #b3b3b3;
+  --sv-text-muted: #808080;
+  --sv-text-dim: #5a5a5a;
+
+  /* Borders */
+  --sv-border: rgba(255, 255, 255, 0.08);
+  --sv-border-hover: rgba(255, 255, 255, 0.15);
+
+  /* Gradients */
+  --sv-gradient-hero: linear-gradient(
+    to top,
+    #0a0a0a 0%,
+    rgba(10, 10, 10, 0.9) 15%,
+    rgba(10, 10, 10, 0.6) 40%,
+    rgba(10, 10, 10, 0.2) 70%,
+    rgba(10, 10, 10, 0) 100%
+  );
+  --sv-gradient-hero-left: linear-gradient(
+    to right,
+    #0a0a0a 0%,
+    rgba(10, 10, 10, 0.8) 30%,
+    rgba(10, 10, 10, 0) 60%
+  );
+  --sv-gradient-card: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(10, 10, 10, 0.8) 60%,
+    rgba(10, 10, 10, 0.95) 100%
+  );
+  --sv-gradient-nav: linear-gradient(
+    to bottom,
+    rgba(10, 10, 10, 0.9) 0%,
+    rgba(10, 10, 10, 0) 100%
+  );
+
+  /* Shadows */
+  --sv-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --sv-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --sv-shadow-glow: 0 0 30px rgba(229, 9, 20, 0.3);
+
+  /* Animation */
+  --sv-transition-fast: 150ms ease-out;
+  --sv-transition-base: 200ms ease-out;
+  --sv-transition-slow: 300ms ease;
+  --sv-transition-page: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Spacing */
+  --sv-navbar-height: 68px;
+  --sv-content-padding: 4%;
+
+  /* Z-Index */
+  --sv-z-base: 0;
+  --sv-z-card-hover: 10;
+  --sv-z-navbar: 50;
+  --sv-z-modal-backdrop: 90;
+  --sv-z-modal: 100;
+}
+
+:root.light {
+  /* Light Mode Palette */
+  --sv-bg-primary: #f9f9fb;
+  --sv-bg-secondary: #f0f1f5;
+  --sv-bg-card: #ffffff;
+  --sv-bg-card-hover: #e9ecef;
+  --sv-bg-elevated: #dee2e6;
+  --sv-bg-surface: #e9ecef;
+
+  /* Text */
+  --sv-text-primary: #121212;
+  --sv-text-secondary: #495057;
+  --sv-text-muted: #6c757d;
+  --sv-text-dim: #adb5bd;
+
+  /* Borders */
+  --sv-border: rgba(0, 0, 0, 0.08);
+  --sv-border-hover: rgba(0, 0, 0, 0.15);
+
+  /* Gradients */
+  --sv-gradient-hero: linear-gradient(
+    to top,
+    #f9f9fb 0%,
+    rgba(249, 249, 251, 0.9) 15%,
+    rgba(249, 249, 251, 0.6) 40%,
+    rgba(249, 249, 251, 0.2) 70%,
+    rgba(249, 249, 251, 0) 100%
+  );
+  --sv-gradient-hero-left: linear-gradient(
+    to right,
+    #f9f9fb 0%,
+    rgba(249, 249, 251, 0.85) 30%,
+    rgba(249, 249, 251, 0) 65%
+  );
+  --sv-gradient-card: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(249, 249, 251, 0.8) 60%,
+    rgba(249, 249, 251, 0.95) 100%
+  );
+  --sv-gradient-nav: linear-gradient(
+    to bottom,
+    rgba(249, 249, 251, 0.95) 0%,
+    rgba(249, 249, 251, 0) 100%
+  );
+
+  /* Shadows */
+  --sv-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --sv-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+@theme {
+  --color-sv-bg: var(--sv-bg-primary);
+  --color-sv-bg-secondary: var(--sv-bg-secondary);
+  --color-sv-card: var(--sv-bg-card);
+  --color-sv-card-hover: var(--sv-bg-card-hover);
+  --color-sv-surface: var(--sv-bg-surface);
+  --color-sv-elevated: var(--sv-bg-elevated);
+  --color-sv-red: var(--sv-red);
+  --color-sv-red-hover: var(--sv-red-hover);
+  --color-sv-red-dark: var(--sv-red-dark);
+  --color-sv-gold: var(--sv-gold);
+  --color-sv-text: var(--sv-text-primary);
+  --color-sv-text-secondary: var(--sv-text-secondary);
+  --color-sv-text-muted: var(--sv-text-muted);
+  --color-sv-text-dim: var(--sv-text-dim);
+  --color-sv-border: var(--sv-border);
+  --color-sv-border-hover: var(--sv-border-hover);
+}
+
+/* ─── Base Reset ─── */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--sv-bg-primary);
+  color: var(--sv-text-primary);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ─── Custom Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Hide scrollbar for content rows */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Animations ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(229, 9, 20, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(229, 9, 20, 0.6); }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--sv-bg-card) 25%,
+    var(--sv-bg-card-hover) 50%,
+    var(--sv-bg-card) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out forwards;
+}
+
+/* ─── Utility Classes ─── */
+.gradient-hero {
+  background: var(--sv-gradient-hero);
+}
+
+.gradient-hero-left {
+  background: var(--sv-gradient-hero-left);
+}
+
+.gradient-card {
+  background: var(--sv-gradient-card);
+}
+
+.gradient-nav {
+  background: var(--sv-gradient-nav);
+}
+
+.text-shadow-hero {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+/* Focus Rings */
+:focus-visible {
+  outline: 2px solid var(--sv-red);
+  outline-offset: 2px;
+}
+
+/* Link Reset */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ─── Content Row Hover ─── */
+.content-row-container {
+  position: relative;
+}
+
+.content-row-container .row-arrow {
+  opacity: 0;
+  transition: opacity var(--sv-transition-base);
+}
+
+.content-row-container:hover .row-arrow {
+  opacity: 1;
+}
+
+/* ─── Card Hover Effect ─── */
+.movie-card {
+  transition: transform var(--sv-transition-slow), box-shadow var(--sv-transition-slow);
+  will-change: transform;
+}
+
+.movie-card:hover {
+  transform: scale(1.08);
+  box-shadow: var(--sv-shadow-elevated);
+  z-index: var(--sv-z-card-hover);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  :root {
+    --sv-navbar-height: 56px;
+    --sv-content-padding: 4%;
+  }
+
+  .movie-card:hover {
+    transform: scale(1.03);
+  }
+}
+
+/* Badge Number for Top 10 */
+.top-ten-number {
+  font-size: 8rem;
+  font-weight: 900;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 3px #808080;
+  text-stroke: 3px #808080;
+  filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+}
+
+@media (max-width: 768px) {
+  .top-ten-number {
+    font-size: 5rem;
+    -webkit-text-stroke: 2px #808080;
+  }
+}
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .movie-card:hover {
+    transform: none;
+  }
+}
