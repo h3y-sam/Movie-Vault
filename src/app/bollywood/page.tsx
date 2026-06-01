@@ -27,14 +27,14 @@ export default function BollywoodPage() {
 
   return (
     <div className="min-h-screen" style={{ paddingTop: '112px' }}>
-      <div className="px-4 md:px-8 lg:px-12 mb-8">
+      <div className="sv-container mb-8">
         <h1 className="text-3xl md:text-4xl font-bold mb-2">Bollywood</h1>
         <p className="text-sv-text-secondary text-sm">
           The best of Indian cinema — from romance to action thrillers.
         </p>
       </div>
 
-      <div className="px-4 md:px-8 lg:px-12">
+      <div className="sv-container">
         {loading ? (
           <div className="flex justify-center py-20">
             <div className="animate-pulse flex gap-2">

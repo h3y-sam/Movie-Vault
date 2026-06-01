@@ -60,15 +60,18 @@ export default function Navbar() {
   };
 
   return (
+    <>
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled || mobileMenuOpen
+        isScrolled
           ? 'bg-sv-bg border-b border-sv-border shadow-lg shadow-black/10'
           : 'gradient-nav'
       }`}
-      style={{ height: 'var(--sv-navbar-height)' }}
     >
-      <div className="flex items-center justify-between h-full px-4 md:px-8 lg:px-12">
+      <div
+        className="flex items-center justify-between px-6 md:px-10 lg:px-16"
+        style={{ height: 'var(--sv-navbar-height)' }}
+      >
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <span className="text-sv-red font-black text-2xl md:text-3xl tracking-tight">
@@ -271,11 +274,12 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+    </nav>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Menu Drawer — rendered outside nav to avoid height clipping */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-sv-bg border-t border-sv-border animate-fade-in max-h-[85vh] overflow-y-auto">
-          <div className="py-4 px-4 md:px-8 lg:px-12 space-y-1">
+        <div className="lg:hidden fixed top-[var(--sv-navbar-height)] left-0 right-0 z-40 bg-sv-bg border-b border-sv-border animate-fade-in max-h-[85vh] overflow-y-auto shadow-xl">
+          <div className="py-4 px-6 md:px-10 space-y-1">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -321,6 +325,6 @@ export default function Navbar() {
           </div>
         </div>
       )}
-    </nav>
+    </>
   );
 }

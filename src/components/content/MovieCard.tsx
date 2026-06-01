@@ -44,7 +44,7 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
 
   return (
     <div
-      className="movie-card group relative flex-shrink-0 w-[160px] md:w-[200px] lg:w-[220px] rounded-md overflow-hidden"
+      className="movie-card group relative flex-shrink-0 w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] rounded-md overflow-hidden"
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <Link href={`/detail/${mediaType}/${item.id}`} className="absolute inset-0 z-0" aria-label={`View details for ${title}`} />

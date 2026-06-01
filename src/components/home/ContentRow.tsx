@@ -44,9 +44,9 @@ export default function ContentRow({ title, items, seeAllHref }: ContentRowProps
   if (!familySafeItems.length) return null;
 
   return (
-    <section className="content-row-container mb-8 md:mb-10">
+    <section className="content-row-container mb-12 md:mb-16 lg:mb-20">
       {/* Section Header */}
-      <div className="flex items-center justify-between px-4 md:px-8 lg:px-12 mb-3">
+      <div className="flex items-center justify-between px-6 md:px-10 lg:px-16" style={{ paddingTop: '2rem', paddingBottom: '1rem' }}>
         <h2 className="text-lg md:text-xl font-bold text-sv-text">{title}</h2>
         {seeAllHref && (
           <Link
@@ -76,7 +76,8 @@ export default function ContentRow({ title, items, seeAllHref }: ContentRowProps
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-3 overflow-x-auto hide-scrollbar px-4 md:px-8 lg:px-12 pb-2 snap-x snap-mandatory"
+          className="flex gap-3 overflow-x-auto hide-scrollbar px-6 md:px-10 lg:px-16 snap-x snap-mandatory"
+          style={{ paddingTop: '1.25rem', paddingBottom: '1.25rem' }}
         >
           {familySafeItems.map((item, index) => (
             <MovieCard key={item.id} item={item} index={index} />

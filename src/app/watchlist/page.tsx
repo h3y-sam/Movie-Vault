@@ -11,7 +11,7 @@ export default function WatchlistPage() {
 
   return (
     <div className="min-h-screen" style={{ paddingTop: '112px' }}>
-      <div className="px-4 md:px-8 lg:px-12 mb-8">
+      <div className="sv-container mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Bookmark className="w-7 h-7 text-sv-red" />
           <h1 className="text-3xl md:text-4xl font-bold">My List</h1>
@@ -21,7 +21,7 @@ export default function WatchlistPage() {
         </p>
       </div>
 
-      <div className="px-4 md:px-8 lg:px-12">
+      <div className="sv-container">
         {items.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {items.map((item) => (

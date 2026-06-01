@@ -34,8 +34,8 @@ export default function TopTenRow({ title, items }: TopTenRowProps) {
   if (!familySafeItems.length) return null;
 
   return (
-    <section className="content-row-container mb-8 md:mb-10">
-      <div className="px-4 md:px-8 lg:px-12 mb-3">
+    <section className="content-row-container mb-12 md:mb-16 lg:mb-20">
+      <div className="flex items-center justify-between px-6 md:px-10 lg:px-16" style={{ paddingTop: '2rem', paddingBottom: '1rem' }}>
         <h2 className="text-lg md:text-xl font-bold text-sv-text">{title}</h2>
       </div>
 
@@ -51,7 +51,8 @@ export default function TopTenRow({ title, items }: TopTenRowProps) {
 
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto hide-scrollbar px-4 md:px-8 lg:px-12 pb-4 snap-x"
+          className="flex gap-4 overflow-x-auto hide-scrollbar px-6 md:px-10 lg:px-16 snap-x"
+          style={{ paddingTop: '1.25rem', paddingBottom: '1.25rem' }}
         >
           {familySafeItems.slice(0, 10).map((item, index) => {
             const isMovie = 'title' in item;
@@ -70,7 +71,7 @@ export default function TopTenRow({ title, items }: TopTenRowProps) {
                 </span>
 
                 {/* Poster */}
-                <div className="relative w-[120px] md:w-[150px] aspect-[2/3] rounded-md overflow-hidden z-10 group-hover:scale-105 transition-transform duration-300">
+                <div className="relative w-[100px] md:w-[130px] aspect-[2/3] rounded-md overflow-hidden z-10 group-hover:scale-105 transition-transform duration-300">
                   <img
                     src={getImageUrl(item.poster_path, 'w342')}
                     alt={itemTitle}

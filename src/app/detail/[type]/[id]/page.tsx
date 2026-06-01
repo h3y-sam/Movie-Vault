@@ -124,7 +124,7 @@ export default function DetailPage({ params }: DetailPageProps) {
       </div>
 
       {/* Content */}
-      <div className="relative -mt-40 md:-mt-56 z-10 px-4 md:px-8 lg:px-12">
+      <div className="relative -mt-40 md:-mt-56 z-10 sv-container">
         <div className="flex flex-col md:flex-row gap-8 max-w-7xl">
           {/* Poster */}
           <div className="hidden md:block flex-shrink-0">

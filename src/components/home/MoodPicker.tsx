@@ -18,7 +18,7 @@ export default function MoodPicker() {
   };
 
   return (
-    <section className="mb-8 md:mb-10 px-4 md:px-8 lg:px-12 animate-fade-in">
+    <section className="pt-6 mb-8 md:mb-10 px-6 md:px-10 lg:px-16 animate-fade-in">
       <div className="mb-4">
         <h2 className="text-lg md:text-xl font-bold text-sv-text">🎭 What's your vibe today?</h2>
         <p className="text-xs text-sv-text-muted mt-0.5">Select a mood to discover tailored content instantly.</p>

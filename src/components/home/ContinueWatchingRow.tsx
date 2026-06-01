@@ -51,10 +51,10 @@ export default function ContinueWatchingRow() {
   if (history.length === 0) return null;
 
   return (
-    <section className="mb-8 md:mb-10 px-4 md:px-8 lg:px-12 animate-fade-in">
-      <h2 className="text-lg md:text-xl font-bold text-sv-text mb-4">🍿 Continue Watching</h2>
+    <section className="mb-12 md:mb-16 lg:mb-20 animate-fade-in">
+      <h2 className="text-lg md:text-xl font-bold text-sv-text px-6 md:px-10 lg:px-16" style={{ paddingTop: '2rem', paddingBottom: '1rem' }}>🍿 Continue Watching</h2>
       
-      <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2 snap-x">
+      <div className="flex gap-4 overflow-x-auto hide-scrollbar snap-x px-6 md:px-10 lg:px-16" style={{ paddingTop: '1.25rem', paddingBottom: '1.25rem' }}>
         {history.map((item) => {
           const watchUrl = item.type === 'movie' 
             ? `/watch/movie/${item.id}`
@@ -67,7 +67,7 @@ export default function ContinueWatchingRow() {
           return (
             <div 
               key={`${item.type}-${item.id}`}
-              className="flex-shrink-0 w-[200px] md:w-[240px] bg-sv-card rounded-lg overflow-hidden border border-sv-border hover:border-sv-border-hover group relative transition-all snap-start"
+              className="flex-shrink-0 w-[160px] md:w-[200px] bg-sv-card rounded-lg overflow-hidden border border-sv-border hover:border-sv-border-hover group relative transition-all snap-start"
             >
               {/* Thumbnail / Backdrop */}
               <div className="relative aspect-video bg-sv-surface overflow-hidden">

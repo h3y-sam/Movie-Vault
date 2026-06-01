@@ -37,7 +37,7 @@ export default async function HomePage() {
     <div className="min-h-screen">
       <HeroBanner items={heroItems} />
 
-      <div className="-mt-24 relative z-10 space-y-2">
+      <div className="-mt-14 md:-mt-20 relative z-10">
         <MoodPicker />
         <ContinueWatchingRow />
 

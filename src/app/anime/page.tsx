@@ -27,7 +27,7 @@ export default function AnimePage() {
 
   return (
     <div className="min-h-screen" style={{ paddingTop: '112px' }}>
-      <div className="px-4 md:px-8 lg:px-12 mb-8">
+      <div className="sv-container mb-8">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-3xl md:text-4xl font-bold">Anime</h1>
           <span className="bg-sv-red/20 text-sv-red text-xs px-2 py-1 rounded font-bold uppercase tracking-wider border border-sv-red/30">
@@ -39,7 +39,7 @@ export default function AnimePage() {
         </p>
       </div>
 
-      <div className="px-4 md:px-8 lg:px-12">
+      <div className="sv-container">
         {loading ? (
           <div className="flex justify-center py-20">
             <div className="animate-pulse flex gap-2">

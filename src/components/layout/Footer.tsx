@@ -44,7 +44,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-sv-bg border-t border-sv-border mt-20 pb-24 md:pb-8">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-12">
+      <div className="sv-container" style={{ paddingTop: '6rem', paddingBottom: '6rem' }}>
         {/* Links Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           {footerLinks.map((section) => (

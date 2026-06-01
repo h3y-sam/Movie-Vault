@@ -59,7 +59,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <div className="min-h-screen" style={{ paddingTop: '112px' }}>
-      <div className="px-4 md:px-8 lg:px-12 mb-8">
+      <div className="sv-container mb-8">
         <h1 className="text-3xl md:text-4xl font-bold mb-6">Search</h1>
 
         <div className="flex gap-4 border-b border-sv-border">
@@ -96,7 +96,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
         </div>
       </div>
 
-      <div className="px-4 md:px-8 lg:px-12">
+      <div className="sv-container">
         {!query ? (
           <div className="text-center py-20">
             <SearchIcon className="w-12 h-12 text-sv-text-muted mx-auto mb-4" />
