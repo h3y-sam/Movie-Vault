@@ -43,18 +43,24 @@ export default function ContentRow({ title, items, seeAllHref }: ContentRowProps
 
   if (!familySafeItems.length) return null;
 
+  // Remove leading emojis/special characters from the title
+  const cleanTitle = title.replace(/^[^a-zA-Z0-9]+/, '').trim();
+
   return (
-    <section className="content-row-container mb-12 md:mb-16 lg:mb-20">
+    <section className="content-row-container mb-10 md:mb-14">
       {/* Section Header */}
-      <div className="flex items-center justify-between px-6 md:px-10 lg:px-16" style={{ paddingTop: '2rem', paddingBottom: '1rem' }}>
-        <h2 className="text-lg md:text-xl font-bold text-sv-text">{title}</h2>
+      <div className="flex items-center justify-between px-6 md:px-10 lg:px-16" style={{ paddingTop: '1.5rem', paddingBottom: '0.75rem' }}>
+        <div className="flex items-center gap-2">
+          <span className="text-[#8b5cf6] text-xs shrink-0 select-none">●</span>
+          <h2 className="text-sm md:text-base font-extrabold text-white tracking-wider uppercase">{cleanTitle}</h2>
+        </div>
         {seeAllHref && (
           <Link
             href={seeAllHref}
-            className="text-sm text-sv-text-secondary hover:text-sv-red transition-colors flex items-center gap-1 group"
+            className="text-xs font-bold text-[#8b5cf6] hover:text-[#a78bfa] transition-colors flex items-center gap-0.5 group tracking-widest uppercase"
           >
             See All
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         )}
       </div>
@@ -65,10 +71,10 @@ export default function ContentRow({ title, items, seeAllHref }: ContentRowProps
         {showLeftArrow && (
           <button
             onClick={() => scroll('left')}
-            className="row-arrow absolute left-0 top-0 bottom-0 z-10 w-12 bg-gradient-to-r from-sv-bg/80 to-transparent flex items-center justify-start pl-1 hover:from-sv-bg transition-all"
+            className="row-arrow absolute left-0 top-0 bottom-0 z-20 w-12 bg-gradient-to-r from-[#0b0b0f] to-transparent flex items-center justify-start pl-3 hover:scale-105 transition-all cursor-pointer opacity-0 group-hover/row:opacity-100"
             aria-label="Scroll left"
           >
-            <ChevronLeft className="w-8 h-8 text-white/80" />
+            <ChevronLeft className="w-7 h-7 text-white/80" />
           </button>
         )}
 
@@ -76,11 +82,11 @@ export default function ContentRow({ title, items, seeAllHref }: ContentRowProps
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-3 overflow-x-auto hide-scrollbar px-6 md:px-10 lg:px-16 snap-x snap-mandatory"
-          style={{ paddingTop: '1.25rem', paddingBottom: '1.25rem' }}
+          className="flex gap-4 overflow-x-auto hide-scrollbar px-6 md:px-10 lg:px-16 snap-x snap-mandatory"
+          style={{ paddingTop: '0.5rem', paddingBottom: '0.75rem' }}
         >
           {familySafeItems.map((item, index) => (
-            <MovieCard key={item.id} item={item} index={index} />
+            <MovieCard key={`${item.id}-${index}`} item={item} index={index} />
           ))}
         </div>
 
@@ -88,10 +94,10 @@ export default function ContentRow({ title, items, seeAllHref }: ContentRowProps
         {showRightArrow && (
           <button
             onClick={() => scroll('right')}
-            className="row-arrow absolute right-0 top-0 bottom-0 z-10 w-12 bg-gradient-to-l from-sv-bg/80 to-transparent flex items-center justify-end pr-1 hover:from-sv-bg transition-all"
+            className="row-arrow absolute right-0 top-0 bottom-0 z-20 w-12 bg-gradient-to-l from-[#0b0b0f] to-transparent flex items-center justify-end pr-3 hover:scale-105 transition-all cursor-pointer opacity-0 group-hover/row:opacity-100"
             aria-label="Scroll right"
           >
-            <ChevronRight className="w-8 h-8 text-white/80" />
+            <ChevronRight className="w-7 h-7 text-white/80" />
           </button>
         )}
       </div>

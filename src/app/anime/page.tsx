@@ -8,12 +8,13 @@ import { tmdb } from '@/lib/tmdb';
 export default function AnimePage() {
   const [anime, setAnime] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
-        const res = await tmdb.getAnime();
+        const res = await tmdb.getAnime(page);
         setAnime(res.results);
       } catch (error) {
         console.error('Failed to fetch anime:', error);
@@ -23,37 +24,57 @@ export default function AnimePage() {
     }
     
     loadData();
-  }, []);
+  }, [page]);
 
   return (
-    <div className="min-h-screen" style={{ paddingTop: '112px' }}>
-      <div className="sv-container mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-3xl md:text-4xl font-bold">Anime</h1>
-          <span className="bg-sv-red/20 text-sv-red text-xs px-2 py-1 rounded font-bold uppercase tracking-wider border border-sv-red/30">
+    <div className="min-h-screen bg-[#0b0b0f] pb-16" style={{ paddingTop: '96px' }}>
+      <div className="max-w-7xl mx-auto px-6 md:px-10 mb-10">
+        <div className="flex items-center gap-3 mb-2 animate-fade-in">
+          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">Anime</h1>
+          <span className="bg-[#8b5cf6]/10 text-[#8b5cf6] text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider border border-[#8b5cf6]/20">
             Otaku Zone
           </span>
         </div>
-        <p className="text-sv-text-secondary text-sm">
+        <p className="text-[#9ca3af] text-sm max-w-xl animate-fade-in">
           Top-rated Japanese animation series and movies.
         </p>
       </div>
 
-      <div className="sv-container">
+      <div className="max-w-7xl mx-auto px-6 md:px-10">
         {loading ? (
           <div className="flex justify-center py-20">
-            <div className="animate-pulse flex gap-2">
-              <div className="w-3 h-3 bg-sv-red rounded-full"></div>
-              <div className="w-3 h-3 bg-sv-red rounded-full"></div>
-              <div className="w-3 h-3 bg-sv-red rounded-full"></div>
-            </div>
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#8b5cf6]" />
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
-            {anime.map((item, index) => (
-              <MovieCard key={item.id} item={item} index={index} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 animate-fade-in">
+              {anime.map((item, index) => (
+                <MovieCard key={item.id} item={item} index={index} />
+              ))}
+            </div>
+
+            {anime.length > 0 && (
+              <div className="flex items-center justify-center gap-4 mt-10">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1 || loading}
+                  className="px-4 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-wider text-[#9ca3af] hover:text-white hover:border-white transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer bg-[#13131a]"
+                >
+                  Previous
+                </button>
+                <span className="text-xs font-bold text-white uppercase tracking-widest bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 px-4 py-1.5 rounded-full select-none">
+                  Page {page}
+                </span>
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={loading}
+                  className="px-4 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-wider text-[#9ca3af] hover:text-white hover:border-white transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer bg-[#13131a]"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

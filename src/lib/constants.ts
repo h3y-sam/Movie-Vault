@@ -84,69 +84,114 @@ export const LANGUAGE_FILTERS: Record<string, { code: string; label: string }> =
 export const STREAM_SOURCES = {
   movie: [
     {
-      name: 'StreamIMDB',
+      name: 'Server 1',
+      url: (tmdbId: number) => `https://peachify.top/embed/movie/${tmdbId}?accent=e50914&dub=Hindi&quality=1080`,
+    },
+    {
+      name: 'Server 2',
       url: (tmdbId: number) => `https://streamimdb.ru/embed/movie/${tmdbId}`,
     },
     {
-      name: 'VSEmbed',
+      name: 'Server 3',
       url: (tmdbId: number) => `https://vsembed.su/embed/movie/${tmdbId}`,
     },
     {
-      name: 'VidLink',
+      name: 'Server 4',
       url: (tmdbId: number) => `https://vidlink.pro/movie/${tmdbId}?primaryColor=e50914&nextbutton=true&autoplay=true`,
     },
     {
-      name: 'Vidking',
+      name: 'Server 5',
       url: (tmdbId: number) => `https://www.vidking.net/embed/movie/${tmdbId}?color=e50914&autoPlay=true`,
     },
     {
-      name: 'VidRock',
+      name: 'Server 6',
       url: (tmdbId: number) => `https://vidrock.ru/movie/${tmdbId}`,
     },
     {
-      name: 'VIDEASY',
+      name: 'Server 7',
       url: (tmdbId: number) => `https://player.videasy.net/movie/${tmdbId}?color=e50914&overlay=true`,
     },
     {
-      name: 'VidSrc.to',
+      name: 'Server 8',
+      url: (tmdbId: number) => `https://www.2embed.cc/embed/${tmdbId}`,
+    },
+    {
+      name: 'Server 9',
       url: (tmdbId: number) => `https://vidsrc.to/embed/movie/${tmdbId}`,
+    },
+    {
+      name: 'Server 10',
+      url: (tmdbId: number) => `https://111movies.net/movie/${tmdbId}`,
+    },
+    {
+      name: 'Server 11',
+      url: (tmdbId: number) => `https://vidnest.fun/movie/${tmdbId}`,
+    },
+    {
+      name: 'Server 12',
+      url: (tmdbId: number) => `https://embedmaster.link/movie/${tmdbId}`,
     },
   ],
   tv: [
     {
-      name: 'StreamIMDB',
+      name: 'Server 1',
+      url: (tmdbId: number, s: number, e: number) =>
+        `https://peachify.top/embed/tv/${tmdbId}/${s}/${e}?accent=e50914&dub=Hindi&quality=1080&autoNext=true&showNextBtn=true`,
+    },
+    {
+      name: 'Server 2',
       url: (tmdbId: number, s: number, e: number) =>
         `https://streamimdb.ru/embed/tv/${tmdbId}/${s}/${e}`,
     },
     {
-      name: 'VSEmbed',
+      name: 'Server 3',
       url: (tmdbId: number, s: number, e: number) =>
         `https://vsembed.su/embed/tv/${tmdbId}/${s}/${e}`,
     },
     {
-      name: 'VidLink',
+      name: 'Server 4',
       url: (tmdbId: number, s: number, e: number) =>
         `https://vidlink.pro/tv/${tmdbId}/${s}/${e}?primaryColor=e50914&nextbutton=true&autoplay=true`,
     },
     {
-      name: 'Vidking',
+      name: 'Server 5',
       url: (tmdbId: number, s: number, e: number) =>
         `https://www.vidking.net/embed/tv/${tmdbId}/${s}/${e}?color=e50914&autoPlay=true&nextEpisode=true&episodeSelector=true`,
     },
     {
-      name: 'VidRock',
+      name: 'Server 6',
       url: (tmdbId: number, s: number, e: number) =>
         `https://vidrock.ru/tv/${tmdbId}/${s}/${e}`,
     },
     {
-      name: 'VIDEASY',
+      name: 'Server 7',
       url: (tmdbId: number, s: number, e: number) =>
         `https://player.videasy.net/tv/${tmdbId}/${s}/${e}?color=e50914&nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true`,
     },
     {
-      name: 'VidSrc.to',
+      name: 'Server 8',
+      url: (tmdbId: number, s: number, e: number) =>
+        `https://www.2embed.cc/embedtv/${tmdbId}&s=${s}&e=${e}`,
+    },
+    {
+      name: 'Server 9',
       url: (tmdbId: number, s: number, e: number) =>
         `https://vidsrc.to/embed/tv/${tmdbId}/${s}/${e}`,
+    },
+    {
+      name: 'Server 10',
+      url: (tmdbId: number, s: number, e: number) =>
+        `https://111movies.net/tv/${tmdbId}/${s}/${e}`,
+    },
+    {
+      name: 'Server 11',
+      url: (tmdbId: number, s: number, e: number) =>
+        `https://vidnest.fun/tv/${tmdbId}/${s}/${e}`,
+    },
+    {
+      name: 'Server 12',
+      url: (tmdbId: number, s: number, e: number) =>
+        `https://embedmaster.link/tv/${tmdbId}/${s}/${e}`,
     },
   ],
 } as const;

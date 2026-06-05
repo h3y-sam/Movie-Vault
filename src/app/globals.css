@@ -1,55 +1,57 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-/* ─── Movie Vault Design System ─── */
+/* ─── StremioTV Design System ─── */
 :root {
   /* Core Palette (Dark Mode Default) */
-  --sv-bg-primary: #0a0a0a;
-  --sv-bg-secondary: #141414;
-  --sv-bg-card: #181818;
-  --sv-bg-card-hover: #252525;
-  --sv-bg-elevated: #1a1a2e;
-  --sv-bg-surface: #1c1c1c;
+  --sv-bg-primary: #040508;
+  --sv-bg-secondary: #090c15;
+  --sv-bg-card: #0d111d;
+  --sv-bg-card-hover: #161c2e;
+  --sv-bg-elevated: #161c2e;
+  --sv-bg-surface: #0d111d;
 
-  /* Brand */
-  --sv-red: #e50914;
-  --sv-red-hover: #f40612;
-  --sv-red-dark: #b20710;
-  --sv-gold: #ffd700;
+  /* Brand & Accent */
+  --sv-red: #e11d48;
+  --sv-red-hover: #be123c;
+  --sv-red-dark: #881337;
+  --sv-gold: #f59e0b;
+  --sv-accent: #9ca3af;
+  --sv-accent-hover: #d1d5db;
 
   /* Text */
   --sv-text-primary: #ffffff;
-  --sv-text-secondary: #b3b3b3;
-  --sv-text-muted: #808080;
-  --sv-text-dim: #5a5a5a;
+  --sv-text-secondary: #9ca3af;
+  --sv-text-muted: #6b7280;
+  --sv-text-dim: #4b5563;
 
   /* Borders */
-  --sv-border: rgba(255, 255, 255, 0.08);
-  --sv-border-hover: rgba(255, 255, 255, 0.15);
+  --sv-border: rgba(255, 255, 255, 0.04);
+  --sv-border-hover: rgba(255, 255, 255, 0.08);
 
   /* Gradients */
   --sv-gradient-hero: linear-gradient(to top,
-      #0a0a0a 0%,
-      rgba(10, 10, 10, 0.9) 15%,
-      rgba(10, 10, 10, 0.6) 40%,
-      rgba(10, 10, 10, 0.2) 70%,
-      rgba(10, 10, 10, 0) 100%);
+      #040508 0%,
+      rgba(4, 5, 8, 0.9) 15%,
+      rgba(4, 5, 8, 0.6) 40%,
+      rgba(4, 5, 8, 0.2) 70%,
+      rgba(4, 5, 8, 0) 100%);
   --sv-gradient-hero-left: linear-gradient(to right,
-      #0a0a0a 0%,
-      rgba(10, 10, 10, 0.8) 30%,
-      rgba(10, 10, 10, 0) 60%);
+      #040508 0%,
+      rgba(4, 5, 8, 0.8) 30%,
+      rgba(4, 5, 8, 0) 60%);
   --sv-gradient-card: linear-gradient(180deg,
       transparent 0%,
-      rgba(10, 10, 10, 0.8) 60%,
-      rgba(10, 10, 10, 0.95) 100%);
+      rgba(4, 5, 8, 0.8) 60%,
+      rgba(4, 5, 8, 0.95) 100%);
   --sv-gradient-nav: linear-gradient(to bottom,
-      rgba(10, 10, 10, 0.9) 0%,
-      rgba(10, 10, 10, 0) 100%);
+      rgba(4, 5, 8, 0.9) 0%,
+      rgba(4, 5, 8, 0) 100%);
 
   /* Shadows */
-  --sv-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.5);
-  --sv-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.6);
-  --sv-shadow-glow: 0 0 30px rgba(229, 9, 20, 0.3);
+  --sv-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.6);
+  --sv-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.7);
+  --sv-shadow-glow: 0 0 30px rgba(225, 29, 72, 0.15);
 
   /* Animation */
   --sv-transition-fast: 150ms ease-out;
@@ -58,7 +60,7 @@
   --sv-transition-page: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Spacing */
-  --sv-navbar-height: 80px;
+  --sv-navbar-height: 64px;
   --sv-content-padding: clamp(1.5rem, 5%, 4rem);
 
   /* Z-Index */
@@ -129,13 +131,13 @@
   --color-sv-text-dim: var(--sv-text-dim);
   --color-sv-border: var(--sv-border);
   --color-sv-border-hover: var(--sv-border-hover);
+  --color-accent: var(--sv-accent);
+  --color-accent-hover: var(--sv-accent-hover);
 }
 
 /* ─── Base Reset ─── */
 * {
   box-sizing: border-box;
-  margin: 2px;
-  padding: 2px;
 }
 
 html {
@@ -145,7 +147,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: var(--sv-bg-primary);
   color: var(--sv-text-primary);
   min-height: 100dvh;
@@ -230,11 +232,11 @@ body {
 
   0%,
   100% {
-    box-shadow: 0 0 5px rgba(229, 9, 20, 0.3);
+    box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
   }
 
   50% {
-    box-shadow: 0 0 20px rgba(229, 9, 20, 0.6);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
   }
 }
 
@@ -280,9 +282,19 @@ body {
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
 }
 
+.text-gradient-purple {
+  background: linear-gradient(90deg, #ff455b, #e11d48, #9f1239);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-glow-purple {
+  background: radial-gradient(circle at center, rgba(225, 29, 72, 0.08) 0%, rgba(4, 5, 8, 0) 70%);
+}
+
 /* Focus Rings */
 :focus-visible {
-  outline: 2px solid var(--sv-red);
+  outline: 2px solid var(--sv-accent);
   outline-offset: 2px;
 }
 
@@ -320,7 +332,7 @@ a {
 }
 
 .movie-card:hover {
-  transform: scale(1.08);
+  transform: scale(1.04);
   box-shadow: var(--sv-shadow-elevated);
   z-index: var(--sv-z-card-hover);
 }
@@ -328,7 +340,7 @@ a {
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
   :root {
-    --sv-navbar-height: 60px;
+    --sv-navbar-height: 64px;
     --sv-content-padding: 1.5rem;
   }
 

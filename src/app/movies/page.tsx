@@ -12,8 +12,8 @@ import { useSettingsStore } from '@/store/settingsStore';
 export default function MoviesPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-sv-bg">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sv-red" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0b0b0f]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8b5cf6]" />
       </div>
     }>
       <MoviesContent />
@@ -30,6 +30,7 @@ function MoviesContent() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [minRating, setMinRating] = useState<string>('0');
+  const [page, setPage] = useState(1);
   
   const [showFilters, setShowFilters] = useState(false);
   const [moviesList, setMoviesList] = useState<MediaItem[]>([]);
@@ -40,6 +41,11 @@ function MoviesContent() {
   useEffect(() => {
     setSelectedSubCategory('all');
   }, [selectedGenre]);
+
+  // Reset page to 1 on filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [selectedGenre, sortBy, selectedLanguage, selectedYear, minRating, kidsMode]);
 
   // Read genre from URL parameters if available (for Mood Vibe Selector redirect)
   useEffect(() => {
@@ -59,6 +65,7 @@ function MoviesContent() {
         setLoading(true);
         const filters: Record<string, string> = {
           sort_by: sortBy,
+          page: page.toString(),
         };
 
         // Apply selected genre
@@ -102,7 +109,7 @@ function MoviesContent() {
       }
     }
     loadFilteredData();
-  }, [selectedGenre, sortBy, selectedLanguage, selectedYear, minRating, kidsMode]);
+  }, [selectedGenre, sortBy, selectedLanguage, selectedYear, minRating, kidsMode, page]);
 
   const clearAllFilters = () => {
     setSelectedGenre('all');
@@ -113,6 +120,7 @@ function MoviesContent() {
     setSelectedLanguage('all');
     setSelectedYear('');
     setMinRating('0');
+    setPage(1);
   };
 
   const currentCategory = MOVIES_TAXONOMY.find((cat) => {
@@ -167,25 +175,25 @@ function MoviesContent() {
   });
 
   return (
-    <div className="min-h-screen bg-sv-bg" style={{ paddingTop: '112px' }}>
+    <div className="min-h-screen bg-[#0b0b0f] pb-16" style={{ paddingTop: '96px' }}>
       {/* Page Header */}
-      <div className="sv-container mb-12 animate-fade-in">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 mb-10 animate-fade-in">
         <div className="flex items-center gap-3">
-          <h1 className="text-3xl md:text-4xl font-black text-sv-text">Movies</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">Movies</h1>
           {kidsMode && (
-            <span className="bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded border border-emerald-500/20">
+            <span className="bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded leading-none">
               KIDS ONLY
             </span>
           )}
         </div>
-        <p className="text-sv-text-muted text-sm mt-1">
+        <p className="text-[#9ca3af] text-sm mt-1.5 max-w-xl">
           Explore Hollywood blockbusters, independent gems, and international cinema.
         </p>
       </div>
 
       {/* Search & Actions Bar (Row 1) */}
-      <div className="sv-container mb-12 animate-fade-in">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-sv-border/10 pb-5">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 mb-8 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-5">
           {/* Search Input */}
           <div className="relative w-full md:w-80">
             <input
@@ -193,9 +201,9 @@ function MoviesContent() {
               placeholder="Search movies..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-sv-card border border-sv-border rounded-lg pl-10 pr-4 py-2.5 text-xs text-sv-text placeholder:text-sv-text-muted outline-none hover:bg-sv-card-hover focus:border-sv-red transition-all font-semibold"
+              className="w-full bg-[#13131a] border border-white/5 rounded-full pl-10 pr-4 py-2 text-xs text-white placeholder:text-[#6b7280] outline-none hover:bg-[#1c1c28] focus:border-[#8b5cf6]/50 focus:ring-1 focus:ring-[#8b5cf6]/50 transition-all font-semibold"
             />
-            <Search className="w-4 h-4 text-sv-text-muted absolute left-3.5 top-3.5 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-[#6b7280] absolute left-4 top-2.5 pointer-events-none" />
           </div>
 
           {/* Action buttons (Sort, Advanced Filters, Reset) */}
@@ -205,7 +213,7 @@ function MoviesContent() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-sv-card border border-sv-border rounded-lg px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-sv-text appearance-none cursor-pointer hover:bg-sv-card-hover transition-colors pr-9 outline-none"
+                className="bg-[#13131a] border border-white/5 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider text-white appearance-none cursor-pointer hover:bg-[#1c1c28] transition-colors pr-9 outline-none"
               >
                 {SORT_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -213,30 +221,30 @@ function MoviesContent() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-4 h-4 text-sv-text-muted absolute right-3 top-3 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-[#9ca3af] absolute right-3 top-2.5 pointer-events-none" />
             </div>
 
             {/* Advanced Filter Toggle Button */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 border rounded-lg px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 border rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 showFilters 
-                  ? 'bg-sv-red border-sv-red text-white' 
-                  : 'bg-sv-card border-sv-border text-sv-text hover:bg-sv-card-hover'
+                  ? 'bg-[#8b5cf6] border-[#8b5cf6] text-white' 
+                  : 'bg-[#13131a] border-white/5 text-[#9ca3af] hover:bg-[#1c1c28] hover:text-white'
               }`}
             >
-              <Filter className="w-3.5 h-3.5" />
+              <Filter className="w-3 h-3" />
               Filters
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3 h-3 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Reset Filters Shortcut */}
             {(selectedGenre !== 'all' || selectedLanguage !== 'all' || selectedYear || minRating !== '0' || selectedSubCategory !== 'all' || selectedTag !== 'all' || searchQuery) && (
               <button
                 onClick={clearAllFilters}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-sv-red hover:underline transition-all cursor-pointer uppercase tracking-wider"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#8b5cf6] hover:text-[#a78bfa] transition-all cursor-pointer uppercase tracking-wider"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className="w-3 h-3" />
                 Reset
               </button>
             )}
@@ -245,22 +253,17 @@ function MoviesContent() {
       </div>
 
       {/* Primary Genre Selection Row (Row 2) */}
-      <div className="sv-container mb-12 animate-fade-in" style={{ marginTop: '16px', marginBottom: '16px' }}>
-        <div className="flex items-center gap-4 animate-fade-in" style={{ paddingTop: '8px', paddingBottom: '8px' }}>
-          <span className="text-[10px] text-sv-text-muted font-black uppercase tracking-widest shrink-0">Genres:</span>
-          <div className="flex overflow-x-auto hide-scrollbar py-2 flex-1" style={{ gap: '12px', paddingTop: '6px', paddingBottom: '6px' }}>
+      <div className="max-w-7xl mx-auto px-6 md:px-10 mb-6 animate-fade-in">
+        <div className="flex items-center gap-4 animate-fade-in py-1">
+          <span className="text-[10px] text-[#6b7280] font-black uppercase tracking-widest shrink-0">Genres:</span>
+          <div className="flex overflow-x-auto hide-scrollbar py-1 flex-1 gap-2.5">
             <button
               onClick={() => setSelectedGenre('all')}
-              className="shrink-0 rounded-full text-xs font-black transition-all cursor-pointer uppercase tracking-wider"
-              style={{
-                paddingTop: '8px',
-                paddingBottom: '8px',
-                paddingLeft: '16px',
-                paddingRight: '16px',
-                backgroundColor: selectedGenre === 'all' ? 'var(--sv-red)' : 'var(--sv-bg-card)',
-                color: selectedGenre === 'all' ? 'white' : 'var(--sv-text-secondary)',
-                border: '1px solid var(--sv-border)'
-              }}
+              className={`shrink-0 rounded-full text-xs font-black transition-all cursor-pointer uppercase tracking-wider px-4 py-2 border ${
+                selectedGenre === 'all'
+                  ? 'bg-[#8b5cf6] border-[#8b5cf6] text-white shadow-lg shadow-[#8b5cf6]/10'
+                  : 'bg-[#13131a] border-white/5 text-[#9ca3af] hover:bg-[#1c1c28] hover:text-white'
+              }`}
             >
               All
             </button>
@@ -268,16 +271,11 @@ function MoviesContent() {
               <button
                 key={id}
                 onClick={() => setSelectedGenre(id)}
-                className="shrink-0 rounded-full text-xs font-black transition-all cursor-pointer uppercase tracking-wider"
-                style={{
-                  paddingTop: '8px',
-                  paddingBottom: '8px',
-                  paddingLeft: '16px',
-                  paddingRight: '16px',
-                  backgroundColor: selectedGenre === id ? 'var(--sv-red)' : 'var(--sv-bg-card)',
-                  color: selectedGenre === id ? 'white' : 'var(--sv-text-secondary)',
-                  border: '1px solid var(--sv-border)'
-                }}
+                className={`shrink-0 rounded-full text-xs font-black transition-all cursor-pointer uppercase tracking-wider px-4 py-2 border ${
+                  selectedGenre === id
+                    ? 'bg-[#8b5cf6] border-[#8b5cf6] text-white shadow-lg shadow-[#8b5cf6]/10'
+                    : 'bg-[#13131a] border-white/5 text-[#9ca3af] hover:bg-[#1c1c28] hover:text-white'
+                }`}
               >
                 {name}
               </button>
@@ -288,20 +286,15 @@ function MoviesContent() {
 
       {/* Sub-Category Pills */}
       {currentCategory && (
-        <div className="sv-container mb-12 animate-fade-in" style={{ marginTop: '12px', marginBottom: '16px' }}>
-          <div className="flex overflow-x-auto hide-scrollbar max-w-full pb-2" style={{ gap: '10px', paddingTop: '4px', paddingBottom: '4px' }}>
+        <div className="max-w-7xl mx-auto px-6 md:px-10 mb-6 animate-fade-in">
+          <div className="flex overflow-x-auto hide-scrollbar max-w-full pb-1 gap-2">
             <button
               onClick={() => setSelectedSubCategory('all')}
-              className="shrink-0 rounded-full text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider"
-              style={{
-                paddingTop: '6px',
-                paddingBottom: '6px',
-                paddingLeft: '14px',
-                paddingRight: '14px',
-                backgroundColor: selectedSubCategory === 'all' ? 'white' : 'var(--sv-bg-card)',
-                color: selectedSubCategory === 'all' ? 'black' : 'var(--sv-text-secondary)',
-                border: '1px solid var(--sv-border)'
-              }}
+              className={`shrink-0 rounded-full text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider px-3.5 py-1.5 border ${
+                selectedSubCategory === 'all'
+                  ? 'bg-white border-white text-black'
+                  : 'bg-[#13131a] border-white/5 text-[#9ca3af] hover:bg-[#1c1c28] hover:text-white'
+              }`}
             >
               All {currentCategory.name}
             </button>
@@ -309,16 +302,11 @@ function MoviesContent() {
               <button
                 key={sub.slug}
                 onClick={() => setSelectedSubCategory(sub.slug)}
-                className="shrink-0 rounded-full text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider"
-                style={{
-                  paddingTop: '6px',
-                  paddingBottom: '6px',
-                  paddingLeft: '14px',
-                  paddingRight: '14px',
-                  backgroundColor: selectedSubCategory === sub.slug ? 'white' : 'var(--sv-bg-card)',
-                  color: selectedSubCategory === sub.slug ? 'black' : 'var(--sv-text-secondary)',
-                  border: '1px solid var(--sv-border)'
-                }}
+                className={`shrink-0 rounded-full text-[10px] font-black transition-all cursor-pointer uppercase tracking-wider px-3.5 py-1.5 border ${
+                  selectedSubCategory === sub.slug
+                    ? 'bg-white border-white text-black'
+                    : 'bg-[#13131a] border-white/5 text-[#9ca3af] hover:bg-[#1c1c28] hover:text-white'
+                }`}
               >
                 {sub.name}
               </button>
@@ -329,16 +317,16 @@ function MoviesContent() {
 
       {/* Advanced Filter Sliders Panel */}
       {showFilters && (
-        <div className="sv-container mb-8 animate-fade-in">
-          <div className="bg-sv-card/80 border border-sv-border rounded-xl p-5 grid grid-cols-1 sm:grid-cols-4 gap-6 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 mb-8 animate-fade-in">
+          <div className="bg-[#13131a]/90 border border-white/5 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-4 gap-6 backdrop-blur-md">
             {/* Language Selector */}
             <div className="space-y-2">
-              <label className="text-[10px] text-sv-text-muted font-black uppercase tracking-widest">Original Language</label>
+              <label className="text-[10px] text-[#6b7280] font-black uppercase tracking-widest">Original Language</label>
               <div className="relative">
                 <select
                   value={selectedLanguage}
                   onChange={(e) => setSelectedLanguage(e.target.value)}
-                  className="w-full bg-sv-surface border border-sv-border rounded-lg px-3.5 py-2.5 text-xs text-white outline-none cursor-pointer hover:bg-sv-card-hover transition-colors font-semibold pr-10 appearance-none"
+                  className="w-full bg-[#13131a] border border-white/5 rounded-lg px-3.5 py-2.5 text-xs text-white outline-none cursor-pointer hover:bg-[#1c1c28] transition-colors font-semibold pr-10 appearance-none"
                 >
                   <option value="all">All Languages</option>
                   {Object.entries(LANGUAGE_FILTERS).map(([key, value]) => (
@@ -347,19 +335,19 @@ function MoviesContent() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="w-4 h-4 text-sv-text-muted absolute right-3 top-3 pointer-events-none" />
+                <ChevronDown className="w-4 h-4 text-[#9ca3af] absolute right-3 top-3 pointer-events-none" />
               </div>
             </div>
 
             {/* Release Year Input */}
             <div className="space-y-2">
-              <label className="text-[10px] text-sv-text-muted font-black uppercase tracking-widest">Release Year</label>
+              <label className="text-[10px] text-[#6b7280] font-black uppercase tracking-widest">Release Year</label>
               <input
                 type="number"
                 placeholder="e.g. 2024"
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="w-full bg-sv-surface border border-sv-border rounded-lg px-3.5 py-2.5 text-xs text-white outline-none placeholder:text-sv-text-dim font-semibold"
+                className="w-full bg-[#13131a] border border-white/5 rounded-lg px-3.5 py-2.5 text-xs text-white outline-none placeholder:text-[#6b7280] font-semibold"
                 min="1950"
                 max="2027"
               />
@@ -368,7 +356,7 @@ function MoviesContent() {
             {/* Minimum Rating Slider */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-[10px] text-sv-text-muted font-black uppercase tracking-widest">Minimum Rating</label>
+                <label className="text-[10px] text-[#6b7280] font-black uppercase tracking-widest">Minimum Rating</label>
                 <span className="text-xs text-sv-gold font-bold flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 fill-sv-gold" />
                   {minRating}+ Rating
@@ -381,18 +369,18 @@ function MoviesContent() {
                 step="1"
                 value={minRating}
                 onChange={(e) => setMinRating(e.target.value)}
-                className="w-full accent-sv-red cursor-pointer bg-sv-surface h-2 rounded-lg appearance-none"
+                className="w-full accent-[#8b5cf6] cursor-pointer bg-[#1c1c28] h-1.5 rounded-lg appearance-none"
               />
             </div>
 
             {/* Smart Tags Mood Filter */}
             <div className="space-y-2">
-              <label className="text-[10px] text-sv-text-muted font-black uppercase tracking-widest">Vibe / Mood</label>
+              <label className="text-[10px] text-[#6b7280] font-black uppercase tracking-widest">Vibe / Mood</label>
               <div className="relative">
                 <select
                   value={selectedTag}
                   onChange={(e) => setSelectedTag(e.target.value)}
-                  className="w-full bg-sv-surface border border-sv-border rounded-lg px-3.5 py-2.5 text-xs text-white outline-none cursor-pointer hover:bg-sv-card-hover transition-colors font-semibold pr-10 appearance-none"
+                  className="w-full bg-[#13131a] border border-white/5 rounded-lg px-3.5 py-2.5 text-xs text-white outline-none cursor-pointer hover:bg-[#1c1c28] transition-colors font-semibold pr-10 appearance-none"
                 >
                   <option value="all">Any Vibe</option>
                   {SMART_TAGS.mood.map((tag) => (
@@ -401,7 +389,7 @@ function MoviesContent() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="w-4 h-4 text-sv-text-muted absolute right-3 top-3.5 pointer-events-none" />
+                <ChevronDown className="w-4 h-4 text-[#9ca3af] absolute right-3 top-3.5 pointer-events-none" />
               </div>
             </div>
           </div>
@@ -409,10 +397,10 @@ function MoviesContent() {
       )}
 
       {/* Movies Grid */}
-      <div className="sv-container pt-8 pb-16">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 pt-4">
         {loading ? (
           <div className="flex justify-center py-24">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sv-red" />
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#8b5cf6]" />
           </div>
         ) : (
           <>
@@ -422,13 +410,35 @@ function MoviesContent() {
               ))}
             </div>
 
+            {filteredMovies.length > 0 && (
+              <div className="flex items-center justify-center gap-4 mt-10">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1 || loading}
+                  className="px-4 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-wider text-[#9ca3af] hover:text-white hover:border-white transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer bg-[#13131a]"
+                >
+                  Previous
+                </button>
+                <span className="text-xs font-bold text-white uppercase tracking-widest bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 px-4 py-1.5 rounded-full select-none">
+                  Page {page}
+                </span>
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={loading}
+                  className="px-4 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-wider text-[#9ca3af] hover:text-white hover:border-white transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer bg-[#13131a]"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+
             {filteredMovies.length === 0 && (
-              <div className="text-center py-20 bg-sv-card/20 rounded-xl border border-sv-border border-dashed p-6">
-                <p className="text-sv-text-muted text-lg font-semibold">No movies found matching your filters.</p>
-                <p className="text-sv-text-dim text-xs mt-1">Try resetting the filters or modifying your inputs.</p>
+              <div className="text-center py-20 bg-[#13131a]/40 rounded-xl border border-white/5 border-dashed p-6">
+                <p className="text-[#9ca3af] text-lg font-semibold">No movies found matching your filters.</p>
+                <p className="text-[#6b7280] text-xs mt-1">Try resetting the filters or modifying your inputs.</p>
                 <button
                   onClick={clearAllFilters}
-                  className="mt-5 bg-sv-red text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-lg hover:bg-sv-red-hover transition-colors cursor-pointer"
+                  className="mt-5 bg-[#8b5cf6] text-white text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-lg hover:bg-[#a78bfa] transition-colors cursor-pointer"
                 >
                   Clear Filters
                 </button>

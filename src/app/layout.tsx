@@ -3,11 +3,12 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MobileNav from "@/components/layout/MobileNav";
+import SecurityProvider from "@/components/common/SecurityProvider";
 
 export const metadata: Metadata = {
-  title: "Movie Vault — Your Personal Streaming Universe",
+  title: "StremioTV — Your Personal Streaming Universe",
   description:
-    "Discover and stream movies, TV shows, anime, and more from Netflix, Prime, Hotstar, and every platform — all in one place. Hollywood, Bollywood, Anime, K-Drama — Movie Vault has it all.",
+    "Discover and stream movies, TV shows, anime, and more from Netflix, Prime, Hotstar, and every platform — all in one place. Hollywood, Bollywood, Anime, K-Drama — StremioTV has it all.",
   keywords: [
     "streaming",
     "movies",
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     "hotstar",
   ],
   openGraph: {
-    title: "Movie Vault",
+    title: "StremioTV",
     description: "Your Personal Netflix-Grade Streaming Discovery Platform",
     type: "website",
   },
@@ -34,10 +35,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="bg-sv-bg text-sv-text min-h-dvh antialiased">
-        <Navbar />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
-        <MobileNav />
+        <SecurityProvider>
+          <Navbar />
+          <main className="min-h-screen">{children}</main>
+          <Footer />
+          <MobileNav />
+        </SecurityProvider>
       </body>
     </html>
   );

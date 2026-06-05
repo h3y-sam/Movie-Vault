@@ -29,13 +29,13 @@ export default function Footer() {
       title: 'Account & Vibe',
       links: [
         { label: 'My Watchlist', href: '/watchlist' },
-        { 
-          label: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, 
-          href: '#', 
+        {
+          label: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`,
+          href: '#',
           onClick: (e: React.MouseEvent) => {
             e.preventDefault();
             toggleTheme();
-          } 
+          }
         },
         { label: 'Privacy Policy', href: '#' },
       ],
@@ -79,7 +79,7 @@ export default function Footer() {
           {/* Brand Column */}
           <div>
             <h3 className="text-sv-text-secondary text-xs font-bold uppercase tracking-wider mb-4">
-              Movie Vault
+              StremioTV
             </h3>
             <p className="text-sv-text-muted text-sm leading-relaxed font-medium">
               Your personal streaming universe. All movies, all series, all in one place.
@@ -92,24 +92,14 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <span className="text-sv-red font-black text-lg">MOVIE</span>
-              <span className="text-sv-text font-light text-lg">VAULT</span>
+              <img src="/logo.png" alt="StremioTV Logo" className="w-9 h-9 object-contain" />
+              <div className="flex items-center gap-0.5">
+                <span className="text-white font-black text-lg">STREMIO</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e11d48] to-[#f43f5e] font-black text-lg">TV</span>
+              </div>
             </div>
 
-            {/* Language Selector Dropdown */}
-            <div className="flex items-center gap-2.5">
-              <span className="text-xs text-sv-text-muted font-semibold uppercase tracking-wider">Language:</span>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="bg-sv-card border border-sv-border rounded px-3 py-1.5 text-xs text-sv-text outline-none cursor-pointer hover:bg-sv-card-hover font-semibold transition-colors"
-              >
-                <option value="en">English</option>
-                <option value="hi">हिन्दी (Hindi)</option>
-                <option value="ta">தமிழ் (Tamil)</option>
-                <option value="te">తెలుగు (Telugu)</option>
-              </select>
-            </div>
+
 
             {/* TMDB Attribution */}
             <div className="flex items-center gap-3">
@@ -126,10 +116,15 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Copyright */}
-            <p className="text-sv-text-dim text-xs text-center font-medium">
-              This product uses the TMDB API but is not endorsed or certified by TMDB.
-            </p>
+            {/* Copyright & Credit */}
+            <div className="flex flex-col items-center md:items-end gap-1.5">
+              <p className="text-sv-text-dim text-xs text-center md:text-right font-medium">
+                This product uses the TMDB API but is not endorsed or certified by TMDB.
+              </p>
+              <p className="text-sv-red text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                Made with <span className="text-sv-red animate-pulse">❤️</span> by h3y-Sam
+              </p>
+            </div>
           </div>
         </div>
       </div>

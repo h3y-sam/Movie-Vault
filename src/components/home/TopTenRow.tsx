@@ -61,7 +61,7 @@ export default function TopTenRow({ title, items }: TopTenRowProps) {
 
             return (
               <Link
-                key={item.id}
+                key={`${item.id}-${index}`}
                 href={`/detail/${mediaType}/${item.id}`}
                 className="flex-shrink-0 flex items-end group relative"
               >

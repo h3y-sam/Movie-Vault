@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Play, Plus, Check, Star, Clock, Calendar, Globe, ArrowLeft, Share2 } from 'lucide-react';
+import { Play, Plus, Check, Star, Clock, Calendar, Globe, ArrowLeft, Share2, Download } from 'lucide-react';
 import { getImageUrl, getBackdropUrl, tmdb } from '@/lib/tmdb';
 import { getYear } from '@/lib/mockData';
 import ContentRow from '@/components/home/ContentRow';
@@ -183,6 +183,26 @@ export default function DetailPage({ params }: DetailPageProps) {
                   {item.original_language}
                 </span>
               )}
+
+              {(() => {
+                const isHindiAvailable = (mediaItem: any) => {
+                  if (mediaItem.original_language === 'hi') return true;
+                  if (mediaItem.origin_country?.includes('IN')) return true;
+                  if (mediaItem.spoken_languages?.some((lang: any) => lang.iso_639_1 === 'hi')) return true;
+                  
+                  const genres = mediaItem.genres?.map((g: any) => g.id) || mediaItem.genre_ids || [];
+                  const hasActionOrSciFiOrAnimation = genres.some((id: number) => [28, 12, 878, 16].includes(id));
+                  if (hasActionOrSciFiOrAnimation && mediaItem.popularity > 25) return true;
+
+                  return false;
+                };
+
+                return isHindiAvailable(item) ? (
+                  <span className="px-2 py-0.5 bg-[#e11d48]/15 border border-[#e11d48]/30 text-sv-red text-xs rounded font-bold uppercase tracking-wider">
+                    Hindi Audio Available
+                  </span>
+                ) : null;
+              })()}
             </div>
 
             {/* Genre Tags */}
@@ -201,11 +221,20 @@ export default function DetailPage({ params }: DetailPageProps) {
             <div className="flex items-center gap-3 mb-8">
               <Link
                 href={`/watch/${mediaType}/${item.id}`}
-                className="flex items-center gap-2 bg-sv-red hover:bg-sv-red-hover text-white px-8 py-3 rounded-lg font-semibold text-base transition-all active:scale-95 shadow-lg shadow-sv-red/20"
+                className="flex items-center gap-2 bg-sv-red hover:bg-sv-red-hover text-white px-8 py-3 rounded-lg font-semibold text-base transition-all active:scale-95 shadow-lg shadow-sv-red/20 cursor-pointer"
               >
                 <Play className="w-5 h-5 fill-white" />
                 Play Now
               </Link>
+              <a
+                href={type === 'movie' ? `https://dl.vidsrc.me/movie/${item.id}` : `https://dl.vidsrc.me/tv/${item.id}/1/1`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/15 text-white px-6 py-3 rounded-lg font-semibold text-base transition-all active:scale-95 border border-white/10 hover:border-white/20 cursor-pointer"
+              >
+                <Download className="w-5 h-5" />
+                Download
+              </a>
               <button
                 onClick={toggleWatchlist}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-base transition-all active:scale-95 ${

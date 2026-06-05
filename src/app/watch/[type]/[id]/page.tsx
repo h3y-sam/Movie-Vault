@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, AlertCircle, ExternalLink, Play, Plus, Check, Loader2, Calendar, Clock, Film, Tv, Search, ArrowUpDown, Volume2, VolumeX, ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowLeft, AlertCircle, ExternalLink, Play, Plus, Check, Loader2, Calendar, Clock, Film, Tv, Search, ArrowUpDown, Volume2, VolumeX, ArrowRight, ChevronDown, Download } from 'lucide-react';
 import { STREAM_SOURCES } from '@/lib/constants';
 import { getImageUrl, getBackdropUrl, tmdb } from '@/lib/tmdb';
 import { useWatchlistStore } from '@/store/watchlistStore';
@@ -21,6 +21,7 @@ export default function WatchPage({ params }: WatchPageProps) {
   const [activeSource, setActiveSource] = useState(0);
   const [season, setSeason] = useState(1);
   const [episode, setEpisode] = useState(1);
+  const [selectedDub, setSelectedDub] = useState('Hindi');
 
   const [title, setTitle] = useState('Loading...');
   const [mediaDetail, setMediaDetail] = useState<any>(null);
@@ -47,8 +48,10 @@ export default function WatchPage({ params }: WatchPageProps) {
   const failoverTimerRef = useRef<any>(null);
 
   // Auto-switch failover timer effect
+  // Only switches if the iframe fails to load within the timeout — cancelled on successful iframe load.
   useEffect(() => {
-    if (!isPlaying || !autoSwitch) {
+    // Don't start timer if not playing, auto-switch disabled, or iframe already loaded
+    if (!isPlaying || !autoSwitch || !iframeLoading) {
       if (failoverTimerRef.current) clearTimeout(failoverTimerRef.current);
       return;
     }
@@ -56,16 +59,17 @@ export default function WatchPage({ params }: WatchPageProps) {
     if (failoverTimerRef.current) clearTimeout(failoverTimerRef.current);
 
     failoverTimerRef.current = setTimeout(() => {
+      // Only switch if the iframe still hasn't loaded (iframeLoading is still true)
       const nextSourceIndex = (activeSource + 1) % sources.length;
       
       if (consecutiveTimeouts < sources.length - 1) {
         setConsecutiveTimeouts((prev) => prev + 1);
         const nextSourceName = sources[nextSourceIndex].name;
-        setToastMessage(`${sources[activeSource].name} unresponsive. Auto-switching to ${nextSourceName}...`);
+        setToastMessage(`${sources[activeSource].name} failed to load. Auto-switching to ${nextSourceName}...`);
         setActiveSource(nextSourceIndex);
         setTimeout(() => setToastMessage(null), 4000);
       } else {
-        setToastMessage('All streaming servers are unresponsive. Please select a server manually or try again later.');
+        setToastMessage('All streaming servers failed to load. Please select a server manually or try again later.');
         setTimeout(() => setToastMessage(null), 6000);
         setConsecutiveTimeouts(0);
       }
@@ -74,7 +78,7 @@ export default function WatchPage({ params }: WatchPageProps) {
     return () => {
       if (failoverTimerRef.current) clearTimeout(failoverTimerRef.current);
     };
-  }, [activeSource, isPlaying, season, episode, autoSwitch, consecutiveTimeouts, sources]);
+  }, [activeSource, isPlaying, season, episode, autoSwitch, iframeLoading, consecutiveTimeouts, sources]);
 
   // Check URL parameters for search params
   useEffect(() => {
@@ -219,14 +223,16 @@ export default function WatchPage({ params }: WatchPageProps) {
     }
   }, [mediaDetail, season, episode, numericId, type]);
 
-  // Listen for message events from VidLink, Vidking and VIDEASY players to track watch progress
+  // Listen for message events from Peachify, VidLink, Vidking, VIDEASY and EmbedMaster players to track watch progress
   useEffect(() => {
     const handlePlayerMessage = (event: MessageEvent) => {
-      // Validate origin
+      // Validate origin — only accept messages from trusted player origins
       if (
+        event.origin !== 'https://peachify.top' &&
         event.origin !== 'https://vidlink.pro' &&
         event.origin !== 'https://www.vidking.net' &&
-        event.origin !== 'https://player.videasy.net'
+        event.origin !== 'https://player.videasy.net' &&
+        event.origin !== 'https://embedmaster.link'
       ) {
         return;
       }
@@ -243,6 +249,9 @@ export default function WatchPage({ params }: WatchPageProps) {
 
       if (!rawData || typeof rawData !== 'object') return;
 
+      const isEmbedMaster = rawData.source === 'embedmaster_player';
+      if (!isEmbedMaster && rawData.type !== 'PLAYER_EVENT' && rawData.type !== 'MEDIA_DATA') return;
+
       // Reset failover timer and counter on any successful message event
       if (failoverTimerRef.current) {
         clearTimeout(failoverTimerRef.current);
@@ -253,7 +262,18 @@ export default function WatchPage({ params }: WatchPageProps) {
       let progressUpdate: { currentTime: number; duration: number } | null = null;
       let isEnded = false;
 
-      if (rawData.type === 'PLAYER_EVENT') {
+      if (isEmbedMaster) {
+        const eventType = rawData.event;
+        const info = rawData.info || {};
+        if (eventType === 'ended') {
+          isEnded = true;
+        }
+        const currentTime = typeof info.seconds === 'number' ? info.seconds : info.currentTime;
+        const duration = info.duration;
+        if (typeof currentTime === 'number' && typeof duration === 'number' && duration > 0) {
+          progressUpdate = { currentTime, duration };
+        }
+      } else if (rawData.type === 'PLAYER_EVENT') {
         const { event: eventType, currentTime, duration, season: eventSeason, episode: eventEpisode } = rawData.data || {};
         
         if (eventType === 'ended') {
@@ -264,32 +284,67 @@ export default function WatchPage({ params }: WatchPageProps) {
           progressUpdate = { currentTime, duration };
         }
 
-        // If the player itself advanced the episode/season (e.g. native next button clicked inside the iframe)
+        // If the player itself advanced the episode/season (e.g. native next button inside iframe, Peachify autoNext)
+        // Peachify sends season/episode as numbers; coerce to handle both
         if (type === 'tv') {
-          if (typeof eventSeason === 'number' && eventSeason !== season) {
-            setSeason(eventSeason);
+          const newSeason = typeof eventSeason === 'string' ? parseInt(eventSeason) : eventSeason;
+          const newEpisode = typeof eventEpisode === 'string' ? parseInt(eventEpisode) : eventEpisode;
+          if (typeof newSeason === 'number' && !isNaN(newSeason) && newSeason !== season) {
+            setSeason(newSeason);
           }
-          if (typeof eventEpisode === 'number' && eventEpisode !== episode) {
-            setEpisode(eventEpisode);
+          if (typeof newEpisode === 'number' && !isNaN(newEpisode) && newEpisode !== episode) {
+            setEpisode(newEpisode);
           }
         }
       } else if (rawData.type === 'MEDIA_DATA') {
-        // Fallback for VidLink MEDIA_DATA
+        // MEDIA_DATA handling:
+        // VidLink: rawData.data is a flat progress object
+        // Peachify: rawData.data is keyed by tmdbId e.g. { "76479": { progress, show_progress, ... } }
         const mediaData = rawData.data;
         if (mediaData) {
-          if (type === 'movie' && mediaData.progress) {
-            progressUpdate = {
-              currentTime: mediaData.progress.watched,
-              duration: mediaData.progress.duration,
-            };
-          } else if (type === 'tv' && mediaData.show_progress) {
-            const key = `s${season}e${episode}`;
-            const epProgress = mediaData.show_progress[key]?.progress;
-            if (epProgress) {
+          // Detect Peachify format: data is an object keyed by numeric IDs
+          const peachifyEntry = mediaData[numericId] ?? mediaData[String(numericId)];
+          
+          if (peachifyEntry) {
+            // Peachify MEDIA_DATA — store the full payload for continue-watching
+            try {
+              const existing = JSON.parse(localStorage.getItem('peachify-progress') || '{}');
+              existing[numericId] = peachifyEntry;
+              localStorage.setItem('peachify-progress', JSON.stringify(existing));
+            } catch (_) {}
+
+            // Extract current progress from Peachify payload
+            if (type === 'movie' && peachifyEntry.progress) {
               progressUpdate = {
-                currentTime: epProgress.watched,
-                duration: epProgress.duration,
+                currentTime: peachifyEntry.progress.watched,
+                duration: peachifyEntry.progress.duration,
               };
+            } else if (type === 'tv' && peachifyEntry.show_progress) {
+              const key = `s${season}e${episode}`;
+              const epProgress = peachifyEntry.show_progress[key]?.progress;
+              if (epProgress) {
+                progressUpdate = {
+                  currentTime: epProgress.watched,
+                  duration: epProgress.duration,
+                };
+              }
+            }
+          } else {
+            // Fallback: VidLink-style flat MEDIA_DATA
+            if (type === 'movie' && mediaData.progress) {
+              progressUpdate = {
+                currentTime: mediaData.progress.watched,
+                duration: mediaData.progress.duration,
+              };
+            } else if (type === 'tv' && mediaData.show_progress) {
+              const key = `s${season}e${episode}`;
+              const epProgress = mediaData.show_progress[key]?.progress;
+              if (epProgress) {
+                progressUpdate = {
+                  currentTime: epProgress.watched,
+                  duration: epProgress.duration,
+                };
+              }
             }
           }
         }
@@ -394,7 +449,7 @@ export default function WatchPage({ params }: WatchPageProps) {
 
   const currentSource = sources[activeSource];
 
-  const embedUrl =
+  const rawEmbedUrl =
     type === 'movie'
       ? (currentSource.url as (id: number) => string)(numericId)
       : (currentSource.url as (id: number, s: number, e: number) => string)(
@@ -402,6 +457,17 @@ export default function WatchPage({ params }: WatchPageProps) {
           season,
           episode
         );
+
+  let embedUrl = rawEmbedUrl;
+  if (rawEmbedUrl.includes('peachify.top')) {
+    try {
+      const urlObj = new URL(rawEmbedUrl);
+      urlObj.searchParams.set('dub', selectedDub);
+      embedUrl = urlObj.toString();
+    } catch (e) {
+      embedUrl = rawEmbedUrl.replace('dub=Hindi', `dub=${selectedDub}`);
+    }
+  }
 
   if (!mediaDetail) {
     return (
@@ -458,12 +524,31 @@ export default function WatchPage({ params }: WatchPageProps) {
 
             {/* Sub-Metadata Row */}
             <div className="flex items-center gap-3.5 text-xs text-sv-text-secondary flex-wrap font-semibold">
-              <span className="flex items-center gap-1 text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 text-xs">
+              <span className="flex items-center gap-1 text-sv-red font-bold bg-sv-red/10 px-2 py-0.5 rounded border border-sv-red/20 text-xs">
                 ★ {mediaDetail?.vote_average?.toFixed(1) || '8.0'}
               </span>
               <span className="text-sv-text-muted">
                 {type === 'movie' ? getYear(mediaDetail?.release_date) : getYear(mediaDetail?.first_air_date)}
               </span>
+              {(() => {
+                const isHindiAvailable = (mediaItem: any) => {
+                  if (mediaItem.original_language === 'hi') return true;
+                  if (mediaItem.origin_country?.includes('IN')) return true;
+                  if (mediaItem.spoken_languages?.some((lang: any) => lang.iso_639_1 === 'hi')) return true;
+                  
+                  const genres = mediaItem.genres?.map((g: any) => g.id) || mediaItem.genre_ids || [];
+                  const hasActionOrSciFiOrAnimation = genres.some((id: number) => [28, 12, 878, 16].includes(id));
+                  if (hasActionOrSciFiOrAnimation && mediaItem.popularity > 25) return true;
+
+                  return false;
+                };
+
+                return isHindiAvailable(mediaDetail) ? (
+                  <span className="bg-[#e11d48]/10 text-sv-red border border-sv-red/20 text-[10px] font-bold px-2 py-0.5 rounded">
+                    HINDI AUDIO
+                  </span>
+                ) : null;
+              })()}
               <span className="text-sv-text-dim font-light">|</span>
               <span className="text-sv-text-muted">{genresLabel}</span>
             </div>
@@ -518,37 +603,62 @@ export default function WatchPage({ params }: WatchPageProps) {
       ) : (
         /* Premium Theatre Player Layout (Full Width) */
         <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 w-full" style={{ paddingTop: '80px', paddingBottom: '1.5rem' }}>
+          {/* Clean Top Bar Above Player */}
+          <div className="flex items-center justify-between gap-4 mb-4 mt-6 animate-fade-in">
+            <h2 className="text-xl md:text-2xl font-black text-white truncate max-w-lg md:max-w-2xl">{title}</h2>
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="relative">
+                <select
+                  value={activeSource}
+                  onChange={(e) => setActiveSource(parseInt(e.target.value))}
+                  className="bg-[#13131a] border border-white/5 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none cursor-pointer hover:bg-[#1c1c28] appearance-none pr-8 transition-all duration-300"
+                >
+                  {sources.map((s, idx) => (
+                    <option key={s.name} value={idx}>
+                      {getServerLabel(s.name)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-[#9ca3af] absolute right-3 top-2.5 pointer-events-none" />
+              </div>
+
+              <button
+                onClick={() => setIsPlaying(false)}
+                className="flex items-center gap-1.5 bg-white/5 border border-white/5 text-[#9ca3af] hover:text-white hover:bg-white/10 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Details
+              </button>
+            </div>
+          </div>
+
           <div
-            className="relative w-full aspect-video bg-[#0a0a0c] border border-sv-border rounded-2xl overflow-hidden shadow-2xl shadow-black/80 animate-fade-in"
+            className="relative w-full aspect-video bg-[#0a0a0c] border border-white/5 rounded-2xl overflow-hidden shadow-2xl shadow-black/80 animate-fade-in"
             style={{ height: '60vh', minHeight: '400px' }}
           >
             <div className="relative h-full w-full bg-black flex flex-col">
               {/* Loading Spinner */}
               {iframeLoading && (
-                <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center z-10">
+                <div className="absolute inset-0 bg-[#0b0b0f] flex flex-col items-center justify-center z-10">
                   <Loader2 className="w-10 h-10 text-sv-red animate-spin mb-3" />
-                  <p className="text-sm text-sv-text font-semibold">Resolving stream link...</p>
-                  <p className="text-xs text-sv-text-muted mt-1 font-medium">Source: {currentSource.name}</p>
+                  <p className="text-sm text-white font-semibold">Resolving stream link...</p>
+                  <p className="text-xs text-[#9ca3af] mt-1 font-medium">Source: {currentSource.name}</p>
                 </div>
               )}
-
-              {/* Control Overlay Buttons */}
-              <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
-                <button
-                  onClick={() => setIsPlaying(false)}
-                  className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md text-white/90 hover:text-white px-3.5 py-2 rounded-full text-xs font-bold transition-all border border-white/10 hover:bg-black/80 cursor-pointer shadow-md"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Info
-                </button>
-              </div>
 
               <iframe
                 src={embedUrl}
                 className="w-full h-full border-none flex-1"
                 allowFullScreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                onLoad={() => setIframeLoading(false)}
+                onLoad={() => {
+                  setIframeLoading(false);
+                  // Cancel the failover timer — iframe loaded successfully, no need to switch
+                  if (failoverTimerRef.current) {
+                     clearTimeout(failoverTimerRef.current);
+                     failoverTimerRef.current = null;
+                  }
+                }}
               ></iframe>
             </div>
           </div>
@@ -561,53 +671,103 @@ export default function WatchPage({ params }: WatchPageProps) {
           
           {/* Active player controls panel (only visible when player is active) */}
           {isPlaying && (
-            <div className="bg-sv-card/45 border border-sv-border/80 rounded-2xl flex items-center justify-between flex-wrap backdrop-blur-md animate-fade-in shadow-xl hover:border-sv-border transition-all duration-300" style={{ padding: '1.5rem', gap: '1.5rem' }}>
+            <div className="bg-[#13131a]/45 border border-white/5 rounded-2xl flex flex-col gap-6 backdrop-blur-md animate-fade-in shadow-xl p-6 transition-all duration-300">
+              {/* Servers row */}
               <div className="flex flex-col gap-2">
-                <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Server Sources</span>
-                <div className="flex flex-wrap" style={{ gap: '0.75rem' }}>
+                <span className="text-[10px] text-sv-red font-bold uppercase tracking-widest">Streaming Servers</span>
+                <div className="flex flex-wrap gap-2.5">
                   {sources.map((source, index) => (
-                    <button
+                     <button
                       key={source.name}
                       onClick={() => setActiveSource(index)}
-                      className={`px-4.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                      className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer border ${
                         activeSource === index
-                          ? 'bg-sv-red text-white shadow-lg shadow-sv-red/20 scale-[1.02]'
-                          : 'bg-sv-surface border border-sv-border text-sv-text-secondary hover:bg-sv-card-hover hover:text-white hover:scale-[1.01]'
+                          ? 'bg-sv-red border-sv-red text-white shadow-lg shadow-sv-red/20'
+                          : 'bg-[#13131a] border-white/5 text-[#9ca3af] hover:bg-[#1c1c28] hover:text-white'
                       }`}
                     >
-                      {source.name}
+                      {getServerLabel(source.name)}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 flex-wrap">
+              {/* DUB selection row (only shown for Server 1 / Peachify) */}
+              {activeSource === 0 && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-[10px] text-sv-red font-bold uppercase tracking-widest">DUB Audio Language</span>
+                  <div className="flex flex-wrap gap-2">
+                    {['Hindi', 'English', 'Tamil', 'Telugu', 'Spanish', 'French'].map((dub) => (
+                      <button
+                        key={dub}
+                        onClick={() => setSelectedDub(dub)}
+                        className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+                          selectedDub === dub
+                            ? 'bg-sv-red border-sv-red text-white shadow-md shadow-sv-red/20'
+                            : 'bg-[#13131a] border-white/5 text-[#9ca3af] hover:bg-[#1c1c28] hover:text-white'
+                        }`}
+                      >
+                        {dub}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Toggles & Selectors Row */}
+              <div className="flex items-center gap-4 flex-wrap justify-between pt-2 border-t border-white/5">
                 {/* Auto-Switch Toggle */}
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Failover</span>
-                  <label className="flex items-center gap-2 cursor-pointer select-none bg-sv-surface px-3 py-2 rounded-xl border border-sv-border hover:bg-sv-card-hover transition-all duration-300 font-semibold text-[10px] text-white/80 uppercase">
+                  <span className="text-[10px] text-sv-red font-bold uppercase tracking-widest">Failover Option</span>
+                  <label className="flex items-center gap-2 cursor-pointer select-none bg-[#13131a] px-3 py-1.5 rounded-full border border-white/5 hover:bg-[#1c1c28] transition-all duration-300 font-semibold text-[10px] text-white/80 uppercase">
                     <input
                       type="checkbox"
                       checked={autoSwitch}
                       onChange={(e) => setAutoSwitch(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="relative w-7 h-4 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-cyan-500"></div>
-                    <span>Auto Switch</span>
+                    <div className="relative w-7 h-4 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-sv-red"></div>
+                    <span>Auto Switch Server</span>
                   </label>
                 </div>
+
+                {/* Download Buttons / Mirrors */}
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[10px] text-sv-red font-bold uppercase tracking-widest">Download Options</span>
+                  <div className="flex gap-2">
+                    <a
+                      href={type === 'movie' ? `https://dl.vidsrc.me/movie/${numericId}` : `https://dl.vidsrc.me/tv/${numericId}/${season}/${episode}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 bg-[#e11d48]/10 hover:bg-[#e11d48]/20 text-sv-red hover:text-white px-3.5 py-1.5 rounded-full border border-sv-red/20 hover:border-sv-red/40 transition-all font-semibold text-[10px] uppercase tracking-wider cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Primary DL</span>
+                    </a>
+                    <a
+                      href={type === 'movie' ? `https://vidsrc.xyz/embed/movie/${numericId}` : `https://vidsrc.xyz/embed/tv/${numericId}/${season}/${episode}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 text-[#9ca3af] hover:text-white px-3.5 py-1.5 rounded-full border border-white/5 hover:border-white/10 transition-all font-semibold text-[10px] uppercase tracking-wider cursor-pointer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Mirror DL</span>
+                    </a>
+                  </div>
+                </div>
+          
 
                 {type === 'tv' && (
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Season</label>
+                      <label className="text-[10px] text-sv-red font-bold uppercase tracking-widest">Season</label>
                       <select
                         value={season}
                         onChange={(e) => {
                           setSeason(parseInt(e.target.value));
                           setEpisode(1);
                         }}
-                        className="bg-sv-surface border border-sv-border rounded-xl px-4 py-2.5 text-xs text-white outline-none cursor-pointer hover:bg-sv-card-hover hover:border-sv-border-hover transition-all duration-300 font-bold"
+                        className="bg-[#13131a] border border-white/5 rounded-xl px-4 py-2 text-xs text-white outline-none cursor-pointer hover:bg-[#1c1c28] transition-all duration-300 font-bold"
                       >
                         {seasonsData.length > 0 ? (
                           seasonsData.map((s) => (
@@ -621,11 +781,11 @@ export default function WatchPage({ params }: WatchPageProps) {
                       </select>
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Episode</label>
+                      <label className="text-[10px] text-sv-red font-bold uppercase tracking-widest">Episode</label>
                       <select
                         value={episode}
                         onChange={(e) => setEpisode(parseInt(e.target.value))}
-                        className="bg-sv-surface border border-sv-border rounded-xl px-4 py-2.5 text-xs text-white outline-none cursor-pointer hover:bg-sv-card-hover hover:border-sv-border-hover transition-all duration-300 font-bold"
+                        className="bg-[#13131a] border border-white/5 rounded-xl px-4 py-2 text-xs text-white outline-none cursor-pointer hover:bg-[#1c1c28] transition-all duration-300 font-bold"
                       >
                         {Array.from(
                           { length: seasonsData.find((s) => s.season_number === season)?.episode_count || 24 },
@@ -696,15 +856,15 @@ export default function WatchPage({ params }: WatchPageProps) {
           )}
 
           {/* Adblock helper warning */}
-          <div className="bg-gradient-to-r from-sv-red/10 via-sv-red/5 to-transparent border border-sv-red/25 p-6 rounded-2xl shadow-lg hover:border-sv-red/45 transition-all duration-300">
+          <div className="bg-gradient-to-r from-sv-red/10 via-sv-red/5 to-transparent border border-sv-red/20 p-6 rounded-2xl shadow-lg hover:border-sv-red/40 transition-all duration-300">
             <div className="flex gap-4">
               <AlertCircle className="w-5 h-5 text-sv-red shrink-0 mt-0.5" />
               <div>
                 <h4 className="text-sm font-bold text-white mb-1 uppercase tracking-wider">AdBlocker Highly Recommended</h4>
                 <p className="text-xs text-sv-text-secondary leading-relaxed font-medium">
-                  Movie Vault does not host any video content. All streams are retrieved from open third-party indexing 
+                  StremioTV does not host any video content. All streams are retrieved from open third-party indexing 
                   embed services. These networks may trigger redirects or popups. We highly suggest using an extension 
-                  like <strong className="text-cyan-400">uBlock Origin</strong> or the <strong className="text-cyan-400">Brave Browser</strong> to enjoy a perfectly clean, ad-free streaming experience.
+                  like <strong className="text-sv-red">uBlock Origin</strong> or the <strong className="text-sv-red">Brave Browser</strong> to enjoy a perfectly clean, ad-free streaming experience.
                 </p>
               </div>
             </div>
@@ -713,8 +873,8 @@ export default function WatchPage({ params }: WatchPageProps) {
           {/* TV Episodes Section - MATCHING SCREENSHOT LAYOUT */}
           {type === 'tv' && (
             <div id="episodes-section" className="space-y-4 pt-4">
-              {/* Heading with vertical cyan bar */}
-              <div className="flex items-center border-l-[3px] border-cyan-500 pl-3">
+              {/* Heading with vertical red bar */}
+              <div className="flex items-center border-l-[3px] border-sv-red pl-3">
                 <h2 className="text-lg md:text-xl font-bold text-white uppercase tracking-wider">
                   Episodes
                 </h2>
@@ -753,7 +913,7 @@ export default function WatchPage({ params }: WatchPageProps) {
                     placeholder="Search episode..."
                     value={episodeSearch}
                     onChange={(e) => setEpisodeSearch(e.target.value)}
-                    className="w-full bg-sv-card border border-sv-border rounded-xl pl-10 pr-4 py-3 text-xs text-white outline-none focus:border-cyan-500/50 hover:border-sv-border-hover placeholder:text-sv-text-dim font-medium transition-all duration-300"
+                    className="w-full bg-sv-card border border-sv-border rounded-xl pl-10 pr-4 py-3 text-xs text-white outline-none focus:border-sv-red/50 hover:border-sv-border-hover placeholder:text-sv-text-dim font-medium transition-all duration-300"
                   />
                 </div>
 
@@ -796,7 +956,7 @@ export default function WatchPage({ params }: WatchPageProps) {
                         }}
                         className={`w-full flex gap-4 p-5 rounded-2xl border text-left transition-all duration-300 hover:scale-[1.015] hover:shadow-lg ${
                           isCurrent
-                            ? 'bg-cyan-500/5 border-cyan-500/60 shadow-[0_0_12px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500/25'
+                            ? 'bg-sv-red/5 border-sv-red/60 shadow-[0_0_12px_rgba(225,29,72,0.15)] ring-1 ring-sv-red/25'
                             : 'bg-sv-card/40 border-sv-border hover:bg-sv-card-hover hover:border-sv-border-hover'
                         }`}
                       >
@@ -822,7 +982,7 @@ export default function WatchPage({ params }: WatchPageProps) {
 
                         {/* Episode Text Info */}
                         <div className="flex-1 min-w-0 pr-4 flex flex-col justify-center">
-                          <h4 className={`text-sm md:text-base font-bold truncate ${isCurrent ? 'text-cyan-400' : 'text-white'}`}>
+                          <h4 className={`text-sm md:text-base font-bold truncate ${isCurrent ? 'text-sv-red' : 'text-white'}`}>
                             {ep.name || `Episode ${ep.episode_number}`}
                           </h4>
                           <p className="text-[10px] text-sv-text-muted mt-0.5 font-bold uppercase tracking-wider">
@@ -866,9 +1026,9 @@ export default function WatchPage({ params }: WatchPageProps) {
                     <Link
                       key={sim.id}
                       href={`/detail/${type}/${sim.id}`}
-                      className="group bg-sv-card rounded-2xl overflow-hidden border border-sv-border hover:border-sv-border-hover hover:scale-[1.03] transition-all duration-300 shadow-md hover:shadow-xl hover:shadow-black/30"
+                      className="group bg-[#13131a] rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 hover:scale-[1.03] transition-all duration-300 shadow-md hover:shadow-xl hover:shadow-black/30"
                     >
-                      <div className="aspect-[2/3] relative bg-sv-surface overflow-hidden rounded-t-2xl">
+                      <div className="aspect-[2/3] relative bg-[#13131a] overflow-hidden rounded-t-2xl">
                         <img
                           src={getImageUrl(sim.poster_path, 'w342')}
                           alt={sim.title || sim.name}
@@ -894,8 +1054,8 @@ export default function WatchPage({ params }: WatchPageProps) {
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#0e0e12] border border-cyan-500/30 text-white px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-slide-in-right backdrop-blur-md">
-          <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
+        <div className="fixed bottom-6 right-6 z-50 bg-[#0e0e12] border border-sv-red/30 text-white px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-slide-in-right backdrop-blur-md">
+          <Loader2 className="w-4 h-4 text-sv-red animate-spin" />
           <span className="text-xs font-bold">{toastMessage}</span>
         </div>
       )}
@@ -906,4 +1066,14 @@ export default function WatchPage({ params }: WatchPageProps) {
 function getYear(dateStr: string | undefined): string {
   if (!dateStr) return '';
   return new Date(dateStr).getFullYear().toString();
+}
+
+function getServerLabel(name: string): string {
+  if (name === 'Server 1') return 'Server 1 ⭐ (Recommended - Multi-Audio)';
+  if (name === 'Server 4') return 'Server 4 ⭐ (Fast & Reliable)';
+  if (name === 'Server 7') return 'Server 7 ⭐ (High Quality - Low Ads)';
+  if (name === 'Server 9') return 'Server 9 (Popular - Auto-Updated)';
+  if (name === 'Server 11') return 'Server 11 (Dual Audio / Anime)';
+  if (name === 'Server 12') return 'Server 12 (Premium Player)';
+  return name;
 }
