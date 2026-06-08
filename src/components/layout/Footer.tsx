@@ -37,7 +37,14 @@ export default function Footer() {
             toggleTheme();
           }
         },
-        { label: 'Privacy Policy', href: '#' },
+      ],
+    },
+    {
+      title: 'Legal',
+      links: [
+        { label: 'Privacy Policy', href: '/privacy-policy' },
+        { label: 'Terms of Service', href: '/terms-of-service' },
+        { label: 'DMCA', href: '/dmca' },
       ],
     },
   ];
@@ -46,7 +53,7 @@ export default function Footer() {
     <footer className="bg-sv-bg border-t border-sv-border mt-20 pb-24 md:pb-8">
       <div className="sv-container" style={{ paddingTop: '6rem', paddingBottom: '6rem' }}>
         {/* Links Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 mb-10">
           {footerLinks.map((section) => (
             <div key={section.title}>
               <h3 className="text-sv-text-secondary text-xs font-bold uppercase tracking-wider mb-4">

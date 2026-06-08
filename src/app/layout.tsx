@@ -5,31 +5,65 @@ import Footer from "@/components/layout/Footer";
 import MobileNav from "@/components/layout/MobileNav";
 import SecurityProvider from "@/components/common/SecurityProvider";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stremiostv.com';
+
 export const metadata: Metadata = {
-  title: "StremioTV — Your Personal Streaming Universe",
-  description:
-    "Discover and stream movies, TV shows, anime, and more from Netflix, Prime, Hotstar, and every platform — all in one place. Hollywood, Bollywood, Anime, K-Drama — StremioTV has it all.",
-  keywords: [
-    "streaming",
-    "movies",
-    "TV shows",
-    "anime",
-    "bollywood",
-    "hollywood",
-    "netflix",
-    "prime video",
-    "hotstar",
-  ],
-  openGraph: {
-    title: "StremioTV",
-    description: "Your Personal Netflix-Grade Streaming Discovery Platform",
-    type: "website",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'StremioTV — Watch Movies, TV Shows & Anime Free Online',
+    template: '%s | StremioTV',
   },
-  manifest: "/manifest.json",
+  description:
+    'StremioTV is a free streaming directory to watch movies, TV shows, anime, and Bollywood films online. No ads, no signup, no subscription — stream anything instantly.',
+  keywords: [
+    'watch movies online free',
+    'free streaming site',
+    'watch anime online free',
+    'bollywood movies online',
+    'hindi dubbed movies',
+    'watch tv shows online',
+    'no ads streaming',
+    'free movie streaming 2025',
+    'watch movies without signup',
+    'StremioTV',
+    'streaming aggregator',
+    'netflix alternative free',
+  ],
+  alternates: {
+    canonical: siteUrl,
+  },
+  openGraph: {
+    title: 'StremioTV — Watch Movies, TV Shows & Anime Free Online',
+    description:
+      'Free streaming directory for movies, TV shows, anime, and Bollywood. No ads, no signup. Stream anything instantly.',
+    url: siteUrl,
+    siteName: 'StremioTV',
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'StremioTV — Free Movie & TV Streaming Directory',
+    description:
+      'Watch movies, TV shows, and anime online for free. No ads, no account. Stream anything on StremioTV.',
+    site: '@stremiostv',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-snippet': -1,
+      'max-image-preview': 'large',
+      'max-video-preview': -1,
+    },
+  },
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "StremioTV",
+    statusBarStyle: 'default',
+    title: 'StremioTV',
   },
 };
 

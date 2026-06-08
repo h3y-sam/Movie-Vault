@@ -127,13 +127,20 @@ export default function LandingPage() {
 
         {/* App Mockup Frame */}
         <div className="relative w-full max-w-5xl rounded-2xl border border-white/5 bg-[#13131a]/80 p-2 shadow-2xl backdrop-blur-sm animate-fade-in-up">
-          <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-black/90">
-            {/* Fake layout graphic */}
-            <div className="absolute inset-0 bg-cover bg-center opacity-40 filter blur-[1px]" style={{ backgroundImage: "url('/no-backdrop.svg')" }} />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e12] via-transparent to-[#0e0e12]/30" />
+          <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-black">
+            {/* Real cinematic backdrop */}
+            <img
+              src="/mockup-backdrop.png"
+              alt="StremioTV streaming preview"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            {/* Gradient overlay for text legibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
+            {/* Content overlay */}
             <div className="absolute inset-0 flex flex-col justify-end p-8 text-left max-w-xl">
               <span className="text-[10px] bg-sv-red text-white font-black px-2 py-0.5 rounded-md w-fit mb-2 tracking-wider">PREVIEW</span>
-              <h3 className="text-xl md:text-3xl font-black text-white mb-2">Watch Hindi Dubbed Content Seamlesly</h3>
+              <h3 className="text-xl md:text-3xl font-black text-white mb-2">Watch Hindi Dubbed Content Seamlessly</h3>
               <p className="text-xs text-gray-400 leading-relaxed">
                 StremioTV auto-injects secure overlays to suppress player popups, loading high-quality audio dubs in full definition instantly.
               </p>
