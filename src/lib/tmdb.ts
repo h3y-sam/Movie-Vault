@@ -89,7 +89,7 @@ export const tmdb = {
     if (USE_MOCK) {
       const mock = await getMock();
       const movie = [...mock.MOCK_TRENDING_MOVIES, ...mock.MOCK_TOP_RATED_MOVIES, ...mock.MOCK_BOLLYWOOD_MOVIES].find(
-        (m) => m.id === id
+        (m: any) => m.id === id
       );
       if (movie) {
         return {
@@ -109,9 +109,9 @@ export const tmdb = {
               },
             ],
           },
-          similar: mockPaginated(mock.MOCK_TRENDING_MOVIES.filter((m) => m.id !== id).slice(0, 6)),
+          similar: mockPaginated(mock.MOCK_TRENDING_MOVIES.filter((m: any) => m.id !== id).slice(0, 6)),
           recommendations: mockPaginated(mock.MOCK_TOP_RATED_MOVIES.slice(0, 6)),
-          genres: movie.genre_ids.map((gid) => ({
+          genres: movie.genre_ids.map((gid: any) => ({
             id: gid,
             name: getGenreLabel(gid),
           })),
@@ -139,7 +139,7 @@ export const tmdb = {
   async getTVDetail(id: number) {
     if (USE_MOCK) {
       const mock = await getMock();
-      const show = [...mock.MOCK_TV_SHOWS, ...mock.MOCK_ANIME].find((s) => s.id === id);
+      const show = [...mock.MOCK_TV_SHOWS, ...mock.MOCK_ANIME].find((s: any) => s.id === id);
       if (show) {
         return {
           ...show,
@@ -157,9 +157,9 @@ export const tmdb = {
               },
             ],
           },
-          similar: mockPaginated(mock.MOCK_TV_SHOWS.filter((s) => s.id !== id).slice(0, 6)),
+          similar: mockPaginated(mock.MOCK_TV_SHOWS.filter((s: any) => s.id !== id).slice(0, 6)),
           recommendations: mockPaginated(mock.MOCK_TV_SHOWS.slice(0, 6)),
-          genres: show.genre_ids.map((gid) => ({
+          genres: show.genre_ids.map((gid: any) => ({
             id: gid,
             name: getGenreLabel(gid),
           })),
