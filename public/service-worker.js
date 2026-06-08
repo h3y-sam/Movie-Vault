@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stremiotv-cache-v1';
+const CACHE_NAME = 'stremiotv-cache-v2';
 const OFFLINE_URL = '/offline.html';
 
 const STATIC_ASSETS = [
