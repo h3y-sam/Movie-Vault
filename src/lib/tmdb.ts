@@ -63,7 +63,7 @@ function mockPaginated<T>(items: T[]): PaginatedResponse<T> {
 
 export const tmdb = {
   // Trending
-  async getTrending(type: string = 'all', period: string = 'week') {
+  async getTrending(type: string = 'all', period: string = 'week'): Promise<PaginatedResponse<TMDBMovie | TMDBTVShow>> {
     if (USE_MOCK) {
       const mock = await getMock();
       return mockPaginated([...mock.MOCK_TRENDING_MOVIES, ...mock.MOCK_TV_SHOWS.slice(0, 4)]);
@@ -74,7 +74,7 @@ export const tmdb = {
   },
 
   // Movies
-  async getMovies(category: string = 'popular', page: number = 1) {
+  async getMovies(category: string = 'popular', page: number = 1): Promise<PaginatedResponse<TMDBMovie>> {
     if (USE_MOCK) {
       const mock = await getMock();
       return mockPaginated(mock.MOCK_TRENDING_MOVIES);
@@ -125,7 +125,7 @@ export const tmdb = {
   },
 
   // TV Shows
-  async getTVShows(category: string = 'popular', page: number = 1) {
+  async getTVShows(category: string = 'popular', page: number = 1): Promise<PaginatedResponse<TMDBTVShow>> {
     if (USE_MOCK) {
       const mock = await getMock();
       return mockPaginated(mock.MOCK_TV_SHOWS);
@@ -201,7 +201,7 @@ export const tmdb = {
   },
 
   // Discover
-  async discover(type: 'movie' | 'tv', filters: Record<string, string>) {
+  async discover(type: 'movie' | 'tv', filters: Record<string, string>): Promise<PaginatedResponse<TMDBMovie | TMDBTVShow>> {
     if (USE_MOCK) {
       const mock = await getMock();
       if (type === 'movie') {
@@ -220,7 +220,7 @@ export const tmdb = {
   },
 
   // Search
-  async search(query: string, page: number = 1) {
+  async search(query: string, page: number = 1): Promise<PaginatedResponse<TMDBMovie | TMDBTVShow>> {
     if (USE_MOCK) {
       const mock = await getMock();
       const allItems = [
@@ -273,7 +273,7 @@ export const tmdb = {
   },
 
   // Top Rated
-  async getTopRated(type: 'movie' | 'tv' = 'movie', page: number = 1) {
+  async getTopRated(type: 'movie' | 'tv' = 'movie', page: number = 1): Promise<PaginatedResponse<TMDBMovie | TMDBTVShow>> {
     if (USE_MOCK) {
       const mock = await getMock();
       return type === 'movie'
