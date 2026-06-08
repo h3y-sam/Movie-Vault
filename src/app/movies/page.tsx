@@ -35,6 +35,7 @@ function MoviesContent() {
   const [showFilters, setShowFilters] = useState(false);
   const [moviesList, setMoviesList] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const { kidsMode } = useSettingsStore();
 
@@ -62,7 +63,11 @@ function MoviesContent() {
   useEffect(() => {
     async function loadFilteredData() {
       try {
-        setLoading(true);
+        if (page === 1) {
+          setLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
         const filters: Record<string, string> = {
           sort_by: sortBy,
           page: page.toString(),
@@ -100,12 +105,19 @@ function MoviesContent() {
         }
 
         const res = await tmdb.discover('movie', filters);
-        setMoviesList(res.results || []);
+        if (page === 1) {
+          setMoviesList(res.results || []);
+        } else {
+          setMoviesList((prev) => [...prev, ...(res.results || [])]);
+        }
       } catch (error) {
         console.error('Discover search failed:', error);
-        setMoviesList([]);
+        if (page === 1) {
+          setMoviesList([]);
+        }
       } finally {
         setLoading(false);
+        setLoadingMore(false);
       }
     }
     loadFilteredData();
@@ -411,23 +423,20 @@ function MoviesContent() {
             </div>
 
             {filteredMovies.length > 0 && (
-              <div className="flex items-center justify-center gap-4 mt-10">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1 || loading}
-                  className="px-4 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-wider text-[#9ca3af] hover:text-white hover:border-white transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer bg-[#13131a]"
-                >
-                  Previous
-                </button>
-                <span className="text-xs font-bold text-white uppercase tracking-widest bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 px-4 py-1.5 rounded-full select-none">
-                  Page {page}
-                </span>
+              <div className="flex items-center justify-center mt-10">
                 <button
                   onClick={() => setPage((p) => p + 1)}
-                  disabled={loading}
-                  className="px-4 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-wider text-[#9ca3af] hover:text-white hover:border-white transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer bg-[#13131a]"
+                  disabled={loading || loadingMore}
+                  className="px-8 py-3 rounded-xl bg-sv-red hover:bg-sv-red-hover text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center gap-2 hover:scale-[1.03] active:scale-95 shadow-lg shadow-sv-red/10"
                 >
-                  Next
+                  {loadingMore ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Load More'
+                  )}
                 </button>
               </div>
             )}

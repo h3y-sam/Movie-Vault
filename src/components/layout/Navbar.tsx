@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, Bell, ChevronDown, Menu, X } from 'lucide-react';
+import { Search, ChevronDown, Menu, X } from 'lucide-react';
 import { NAV_LINKS } from '@/lib/constants';
 import { useSettingsStore } from '@/store/settingsStore';
 
@@ -13,7 +13,6 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
   const router = useRouter();
@@ -47,7 +46,6 @@ export default function Navbar() {
   useEffect(() => {
     setMobileMenuOpen(false);
     setProfileOpen(false);
-    setNotificationsOpen(false);
   }, [pathname]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -91,13 +89,16 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium transition-colors duration-200 hover:text-white ${
+              className={`relative py-1 text-sm font-medium transition-colors duration-200 hover:text-white flex flex-col items-center ${
                 pathname === link.href
                   ? 'text-white font-semibold'
                   : 'text-[#9ca3af]'
               }`}
             >
-              {link.label}
+              <span>{link.label}</span>
+              {pathname === link.href && (
+                <span className="absolute bottom-[-6px] w-1.5 h-1.5 rounded-full bg-sv-red animate-pulse" />
+              )}
             </Link>
           ))}
         </div>

@@ -197,7 +197,7 @@ export const STREAM_SOURCES = {
 } as const;
 
 export const NAV_LINKS = [
-  { label: 'Home', href: '/' },
+  { label: 'Home', href: '/browse' },
   { label: 'Movies', href: '/movies' },
   { label: 'Series', href: '/series' },
   { label: 'Anime', href: '/anime' },

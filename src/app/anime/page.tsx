@@ -8,18 +8,28 @@ import { tmdb } from '@/lib/tmdb';
 export default function AnimePage() {
   const [anime, setAnime] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
 
   useEffect(() => {
     async function loadData() {
       try {
-        setLoading(true);
+        if (page === 1) {
+          setLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
         const res = await tmdb.getAnime(page);
-        setAnime(res.results);
+        if (page === 1) {
+          setAnime(res.results as MediaItem[]);
+        } else {
+          setAnime((prev) => [...prev, ...(res.results as MediaItem[])]);
+        }
       } catch (error) {
         console.error('Failed to fetch anime:', error);
       } finally {
         setLoading(false);
+        setLoadingMore(false);
       }
     }
     
@@ -54,23 +64,20 @@ export default function AnimePage() {
             </div>
 
             {anime.length > 0 && (
-              <div className="flex items-center justify-center gap-4 mt-10">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1 || loading}
-                  className="px-4 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-wider text-[#9ca3af] hover:text-white hover:border-white transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer bg-[#13131a]"
-                >
-                  Previous
-                </button>
-                <span className="text-xs font-bold text-white uppercase tracking-widest bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 px-4 py-1.5 rounded-full select-none">
-                  Page {page}
-                </span>
+              <div className="flex items-center justify-center mt-10">
                 <button
                   onClick={() => setPage((p) => p + 1)}
-                  disabled={loading}
-                  className="px-4 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-wider text-[#9ca3af] hover:text-white hover:border-white transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer bg-[#13131a]"
+                  disabled={loading || loadingMore}
+                  className="px-8 py-3 rounded-xl bg-sv-red hover:bg-sv-red-hover text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center gap-2 hover:scale-[1.03] active:scale-95 shadow-lg shadow-sv-red/10"
                 >
-                  Next
+                  {loadingMore ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Load More'
+                  )}
                 </button>
               </div>
             )}

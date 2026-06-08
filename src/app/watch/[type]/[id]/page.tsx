@@ -2,10 +2,12 @@
 
 import { use, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, AlertCircle, ExternalLink, Play, Plus, Check, Loader2, Calendar, Clock, Film, Tv, Search, ArrowUpDown, Volume2, VolumeX, ArrowRight, ChevronDown, Download } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, AlertCircle, ExternalLink, Play, Plus, Check, Loader2, Film, Tv, Search, ArrowUpDown, Volume2, VolumeX, ArrowRight, ChevronDown, Download, Users } from 'lucide-react';
 import { STREAM_SOURCES } from '@/lib/constants';
 import { getImageUrl, getBackdropUrl, tmdb } from '@/lib/tmdb';
 import { useWatchlistStore } from '@/store/watchlistStore';
+import JoinRoomModal from '@/components/room/JoinRoomModal';
 
 interface WatchPageProps {
   params: Promise<{ type: string; id: string }>;
@@ -29,11 +31,17 @@ export default function WatchPage({ params }: WatchPageProps) {
   const [episodesList, setEpisodesList] = useState<any[]>([]);
   const [episodesLoading, setEpisodesLoading] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  // Watch Together integration
+  const [creatingRoom, setCreatingRoom] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [createdRoomCode, setCreatedRoomCode] = useState<string | null>(null);
 
   // Search & Sort episodes states
   const [episodeSearch, setEpisodeSearch] = useState('');
   const [episodeSort, setEpisodeSort] = useState<'asc' | 'desc'>('asc');
-  
+
   // Volume controls overlay
   const [isMuted, setIsMuted] = useState(false);
 
@@ -46,6 +54,12 @@ export default function WatchPage({ params }: WatchPageProps) {
   const [consecutiveTimeouts, setConsecutiveTimeouts] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const failoverTimerRef = useRef<any>(null);
+
+  // Ad-blocker click shield: on first user click inside the iframe area, we absorb
+  // the event via the shield overlay (which prevents the ad popup from firing) then
+  // immediately hide the shield so subsequent clicks reach the player normally.
+  const [clickShieldActive, setClickShieldActive] = useState(false);
+  const clickShieldRef = useRef<HTMLDivElement>(null);
 
   // Auto-switch failover timer effect
   // Only switches if the iframe fails to load within the timeout — cancelled on successful iframe load.
@@ -61,7 +75,7 @@ export default function WatchPage({ params }: WatchPageProps) {
     failoverTimerRef.current = setTimeout(() => {
       // Only switch if the iframe still hasn't loaded (iframeLoading is still true)
       const nextSourceIndex = (activeSource + 1) % sources.length;
-      
+
       if (consecutiveTimeouts < sources.length - 1) {
         setConsecutiveTimeouts((prev) => prev + 1);
         const nextSourceName = sources[nextSourceIndex].name;
@@ -93,6 +107,59 @@ export default function WatchPage({ params }: WatchPageProps) {
     }
   }, []);
 
+  const router = useRouter();
+
+  const handleStartWatchTogether = () => {
+    setShowJoinModal(true);
+  };
+
+  const handleCreateRoom = async (name: string, avatar: string, color: string) => {
+    try {
+      setCreatingRoom(true);
+      const hostId = Math.random().toString(36).slice(2, 10);
+
+      // Save host identity to localStorage to prevent double name prompt
+      localStorage.setItem('streamvault-host-identity', JSON.stringify({
+        id: hostId,
+        name,
+        avatar,
+        color,
+      }));
+
+      const res = await fetch('/api/room/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          movieId: numericId,
+          mediaType: type,
+          season,
+          episode,
+          title,
+          poster: mediaDetail?.backdrop_path || '',
+          hostId,
+          hostName: name,
+          hostAvatar: avatar,
+          hostColor: color,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to create room');
+      const data = await res.json();
+      setCreatedRoomCode(data.code);
+      setShowJoinModal(false);
+
+      // Auto redirect after short delay or direct transition
+      router.push(`/room/${data.code}`);
+    } catch (err) {
+      console.error('Error starting watch together:', err);
+      alert('Could not start watch together party. Please try again.');
+    } finally {
+      setCreatingRoom(false);
+    }
+  };
+
   // Sync state to URL params (avoid full refreshes)
   useEffect(() => {
     if (type === 'tv' && typeof window !== 'undefined') {
@@ -112,12 +179,21 @@ export default function WatchPage({ params }: WatchPageProps) {
   useEffect(() => {
     async function loadTitle() {
       try {
+        setHasError(false);
         if (type === 'movie') {
           const res = await tmdb.getMovieDetail(numericId);
+          if (!res) {
+            setHasError(true);
+            return;
+          }
           setMediaDetail(res);
           setTitle(res?.title || 'Unknown Movie');
         } else {
           const res = await tmdb.getTVDetail(numericId);
+          if (!res) {
+            setHasError(true);
+            return;
+          }
           setMediaDetail(res);
           setTitle(res?.name || 'Unknown Show');
           if (res?.seasons) {
@@ -129,6 +205,8 @@ export default function WatchPage({ params }: WatchPageProps) {
           }
         }
       } catch (err) {
+        console.error('Failed to load title details:', err);
+        setHasError(true);
         setTitle('Unknown Title');
       }
     }
@@ -275,11 +353,11 @@ export default function WatchPage({ params }: WatchPageProps) {
         }
       } else if (rawData.type === 'PLAYER_EVENT') {
         const { event: eventType, currentTime, duration, season: eventSeason, episode: eventEpisode } = rawData.data || {};
-        
+
         if (eventType === 'ended') {
           isEnded = true;
         }
-        
+
         if (typeof currentTime === 'number' && typeof duration === 'number' && duration > 0) {
           progressUpdate = { currentTime, duration };
         }
@@ -304,14 +382,14 @@ export default function WatchPage({ params }: WatchPageProps) {
         if (mediaData) {
           // Detect Peachify format: data is an object keyed by numeric IDs
           const peachifyEntry = mediaData[numericId] ?? mediaData[String(numericId)];
-          
+
           if (peachifyEntry) {
             // Peachify MEDIA_DATA — store the full payload for continue-watching
             try {
               const existing = JSON.parse(localStorage.getItem('peachify-progress') || '{}');
               existing[numericId] = peachifyEntry;
               localStorage.setItem('peachify-progress', JSON.stringify(existing));
-            } catch (_) {}
+            } catch (_) { }
 
             // Extract current progress from Peachify payload
             if (type === 'movie' && peachifyEntry.progress) {
@@ -428,7 +506,15 @@ export default function WatchPage({ params }: WatchPageProps) {
   // Reset loading spinner whenever source or video indexes change
   useEffect(() => {
     setIframeLoading(true);
+    // Re-arm the click shield on every source/episode change so the first click
+    // is always intercepted (ad scripts re-arm themselves too)
+    setClickShieldActive(true);
   }, [activeSource, season, episode]);
+
+  // Also arm the shield when player starts
+  useEffect(() => {
+    if (isPlaying) setClickShieldActive(true);
+  }, [isPlaying]);
 
   // Filter & sort episodes list
   const filteredEpisodes = episodesList
@@ -453,10 +539,10 @@ export default function WatchPage({ params }: WatchPageProps) {
     type === 'movie'
       ? (currentSource.url as (id: number) => string)(numericId)
       : (currentSource.url as (id: number, s: number, e: number) => string)(
-          numericId,
-          season,
-          episode
-        );
+        numericId,
+        season,
+        episode
+      );
 
   let embedUrl = rawEmbedUrl;
   if (rawEmbedUrl.includes('peachify.top')) {
@@ -467,6 +553,24 @@ export default function WatchPage({ params }: WatchPageProps) {
     } catch (e) {
       embedUrl = rawEmbedUrl.replace('dub=Hindi', `dub=${selectedDub}`);
     }
+  }
+
+  if (hasError) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-center">
+        <AlertCircle className="w-12 h-12 text-sv-red mb-4 animate-pulse" />
+        <h2 className="text-xl font-bold text-white mb-2">Content Not Found</h2>
+        <p className="text-sm text-sv-text-muted max-w-sm mb-6">
+          We couldn't load the requested details. This content might not exist, or there could be a network connection issue.
+        </p>
+        <Link 
+          href="/" 
+          className="bg-sv-red hover:bg-sv-red-hover text-white text-xs font-bold px-6 py-2.5 rounded-full transition-colors shrink-0 shadow-lg shadow-sv-red/20 cursor-pointer"
+        >
+          Go Back Home
+        </Link>
+      </div>
+    );
   }
 
   if (!mediaDetail) {
@@ -506,7 +610,7 @@ export default function WatchPage({ params }: WatchPageProps) {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          
+
           <button
             onClick={() => setIsMuted(!isMuted)}
             className="absolute top-20 right-4 md:right-8 z-10 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/80 hover:bg-black/60 hover:text-white transition-all cursor-pointer"
@@ -535,7 +639,7 @@ export default function WatchPage({ params }: WatchPageProps) {
                   if (mediaItem.original_language === 'hi') return true;
                   if (mediaItem.origin_country?.includes('IN')) return true;
                   if (mediaItem.spoken_languages?.some((lang: any) => lang.iso_639_1 === 'hi')) return true;
-                  
+
                   const genres = mediaItem.genres?.map((g: any) => g.id) || mediaItem.genre_ids || [];
                   const hasActionOrSciFiOrAnimation = genres.some((id: number) => [28, 12, 878, 16].includes(id));
                   if (hasActionOrSciFiOrAnimation && mediaItem.popularity > 25) return true;
@@ -564,14 +668,13 @@ export default function WatchPage({ params }: WatchPageProps) {
                 <Play className="w-4 h-4 fill-black text-black" />
                 Play
               </button>
-              
+
               <button
                 onClick={toggleWatchlist}
-                className={`rounded-lg border flex items-center justify-center transition-all cursor-pointer bg-black/30 backdrop-blur-sm ${
-                  inList
+                className={`rounded-lg border flex items-center justify-center transition-all cursor-pointer bg-black/30 backdrop-blur-sm ${inList
                     ? 'border-sv-red text-sv-red'
                     : 'border-white/30 text-white hover:border-white'
-                }`}
+                  }`}
                 style={{ width: '2.75rem', height: '2.75rem' }}
                 aria-label="Add to watchlist"
               >
@@ -596,6 +699,14 @@ export default function WatchPage({ params }: WatchPageProps) {
               >
                 <Film className="w-4 h-4" />
                 Similars
+              </button>
+              <button
+                onClick={handleStartWatchTogether}
+                className="flex items-center gap-2 border border-sv-red/35 hover:border-sv-red text-sv-red rounded-lg font-bold text-xs uppercase tracking-wider bg-[#e11d48]/5 backdrop-blur-sm transition-all cursor-pointer"
+                style={{ padding: '0.75rem 1.25rem' }}
+              >
+                <Users className="w-4 h-4" />
+                Watch Together
               </button>
             </div>
           </div>
@@ -623,6 +734,14 @@ export default function WatchPage({ params }: WatchPageProps) {
               </div>
 
               <button
+                onClick={handleStartWatchTogether}
+                className="flex items-center gap-1.5 bg-sv-red/10 border border-sv-red/20 text-sv-red hover:bg-sv-red hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                <Users className="w-4 h-4" />
+                Watch Together
+              </button>
+
+              <button
                 onClick={() => setIsPlaying(false)}
                 className="flex items-center gap-1.5 bg-white/5 border border-white/5 text-[#9ca3af] hover:text-white hover:bg-white/10 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
               >
@@ -646,17 +765,40 @@ export default function WatchPage({ params }: WatchPageProps) {
                 </div>
               )}
 
+              {/*
+                AD SHIELD OVERLAY — Layer 2 click interception
+                This transparent div sits on top of the iframe and catches the very first
+                click a user makes after a new source loads. On ad-heavy players, the first
+                click always triggers window.open() for a popup. By absorbing that first click
+                here (we never pass it to the iframe), the popup is silently swallowed.
+                The shield then hides itself so all subsequent clicks reach the player naturally.
+              */}
+              {clickShieldActive && !iframeLoading && (
+                <div
+                  ref={clickShieldRef}
+                  className="absolute inset-0 z-20 cursor-pointer"
+                  style={{ background: 'transparent' }}
+                  title="Click to start player"
+                  onClick={(e) => {
+                    // Absorb the first click (would have opened an ad popup)
+                    e.stopPropagation();
+                    // Deactivate shield — all subsequent clicks go straight to the iframe
+                    setClickShieldActive(false);
+                  }}
+                />
+              )}
+
               <iframe
                 src={embedUrl}
                 className="w-full h-full border-none flex-1"
                 allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                 onLoad={() => {
                   setIframeLoading(false);
-                  // Cancel the failover timer — iframe loaded successfully, no need to switch
+                  // Cancel the failover timer — iframe loaded successfully
                   if (failoverTimerRef.current) {
-                     clearTimeout(failoverTimerRef.current);
-                     failoverTimerRef.current = null;
+                    clearTimeout(failoverTimerRef.current);
+                    failoverTimerRef.current = null;
                   }
                 }}
               ></iframe>
@@ -668,7 +810,7 @@ export default function WatchPage({ params }: WatchPageProps) {
       {/* 2. Source Selector / Adblock warnings and layout options */}
       <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16 mb-24 animate-fade-in-up" style={{ marginTop: '1.5rem', paddingTop: '1rem' }}>
         <div className="max-w-4xl mx-auto space-y-8">
-          
+
           {/* Active player controls panel (only visible when player is active) */}
           {isPlaying && (
             <div className="bg-[#13131a]/45 border border-white/5 rounded-2xl flex flex-col gap-6 backdrop-blur-md animate-fade-in shadow-xl p-6 transition-all duration-300">
@@ -677,14 +819,13 @@ export default function WatchPage({ params }: WatchPageProps) {
                 <span className="text-[10px] text-sv-red font-bold uppercase tracking-widest">Streaming Servers</span>
                 <div className="flex flex-wrap gap-2.5">
                   {sources.map((source, index) => (
-                     <button
+                    <button
                       key={source.name}
                       onClick={() => setActiveSource(index)}
-                      className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer border ${
-                        activeSource === index
+                      className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 cursor-pointer border ${activeSource === index
                           ? 'bg-sv-red border-sv-red text-white shadow-lg shadow-sv-red/20'
                           : 'bg-[#13131a] border-white/5 text-[#9ca3af] hover:bg-[#1c1c28] hover:text-white'
-                      }`}
+                        }`}
                     >
                       {getServerLabel(source.name)}
                     </button>
@@ -701,11 +842,10 @@ export default function WatchPage({ params }: WatchPageProps) {
                       <button
                         key={dub}
                         onClick={() => setSelectedDub(dub)}
-                        className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer ${
-                          selectedDub === dub
+                        className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer ${selectedDub === dub
                             ? 'bg-sv-red border-sv-red text-white shadow-md shadow-sv-red/20'
                             : 'bg-[#13131a] border-white/5 text-[#9ca3af] hover:bg-[#1c1c28] hover:text-white'
-                        }`}
+                          }`}
                       >
                         {dub}
                       </button>
@@ -731,8 +871,8 @@ export default function WatchPage({ params }: WatchPageProps) {
                   </label>
                 </div>
 
-                {/* Download Buttons / Mirrors */}
-                <div className="flex flex-col gap-1.5">
+                {/* Download Buttons / Mirrors — marked data-sv-safe so our ad-blocker doesn't intercept these legitimate outbound links */}
+                <div className="flex flex-col gap-1.5" data-sv-safe>
                   <span className="text-[10px] text-sv-red font-bold uppercase tracking-widest">Download Options</span>
                   <div className="flex gap-2">
                     <a
@@ -755,7 +895,7 @@ export default function WatchPage({ params }: WatchPageProps) {
                     </a>
                   </div>
                 </div>
-          
+
 
                 {type === 'tv' && (
                   <div className="flex items-center gap-3">
@@ -809,7 +949,7 @@ export default function WatchPage({ params }: WatchPageProps) {
               <h3 className="text-base font-bold text-white border-b border-sv-border pb-2">
                 About {type === 'movie' ? 'Movie' : 'Show'}
               </h3>
-              
+
               {mediaDetail.tagline && (
                 <p className="text-xs text-sv-text-secondary italic">"{mediaDetail.tagline}"</p>
               )}
@@ -862,8 +1002,8 @@ export default function WatchPage({ params }: WatchPageProps) {
               <div>
                 <h4 className="text-sm font-bold text-white mb-1 uppercase tracking-wider">AdBlocker Highly Recommended</h4>
                 <p className="text-xs text-sv-text-secondary leading-relaxed font-medium">
-                  StremioTV does not host any video content. All streams are retrieved from open third-party indexing 
-                  embed services. These networks may trigger redirects or popups. We highly suggest using an extension 
+                  StremioTV does not host any video content. All streams are retrieved from open third-party indexing
+                  embed services. These networks may trigger redirects or popups. We highly suggest using an extension
                   like <strong className="text-sv-red">uBlock Origin</strong> or the <strong className="text-sv-red">Brave Browser</strong> to enjoy a perfectly clean, ad-free streaming experience.
                 </p>
               </div>
@@ -954,23 +1094,29 @@ export default function WatchPage({ params }: WatchPageProps) {
                           setIsPlaying(true);
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        className={`w-full flex gap-4 p-5 rounded-2xl border text-left transition-all duration-300 hover:scale-[1.015] hover:shadow-lg ${
-                          isCurrent
+                        className={`w-full flex gap-4 p-5 rounded-2xl border text-left transition-all duration-300 hover:scale-[1.015] hover:shadow-lg ${isCurrent
                             ? 'bg-sv-red/5 border-sv-red/60 shadow-[0_0_12px_rgba(225,29,72,0.15)] ring-1 ring-sv-red/25'
                             : 'bg-sv-card/40 border-sv-border hover:bg-sv-card-hover hover:border-sv-border-hover'
-                        }`}
+                          }`}
                       >
                         {/* Still Image aspect-video thumbnail */}
-                        <div className="relative w-36 md:w-48 aspect-video rounded-xl overflow-hidden flex-shrink-0 bg-sv-surface border border-sv-border/70 shadow-md">
-                          <img
-                            src={getImageUrl(ep.still_path || mediaDetail?.backdrop_path, 'w300')}
-                            alt={ep.name}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                            onError={(e) => {
-                              e.currentTarget.src = '/no-image.svg';
-                            }}
-                          />
+                        <div className="relative w-36 md:w-48 aspect-video rounded-xl overflow-hidden flex-shrink-0 bg-sv-card/80 border border-sv-border/70 shadow-md flex items-center justify-center">
+                          {ep.still_path ? (
+                            <img
+                              src={getImageUrl(ep.still_path, 'w300')}
+                              alt={ep.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.src = '/no-image.svg';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-[#1c1c28] to-[#13131a] flex flex-col items-center justify-center gap-1.5 p-3">
+                              <Film className="w-5 h-5 text-sv-text-muted/40" />
+                              <span className="text-[9px] text-sv-text-secondary font-black uppercase tracking-wider">Episode {ep.episode_number}</span>
+                            </div>
+                          )}
                           {/* Episode number badge at bottom-left corner */}
                           <div className="absolute bottom-2 left-2 bg-black/85 px-1.5 py-0.5 rounded text-[9px] font-black text-white border border-white/5">
                             {ep.episode_number}
@@ -1051,7 +1197,17 @@ export default function WatchPage({ params }: WatchPageProps) {
           </div>
         </div>
       </div>
-      
+
+
+      {/* Dynamic modals */}
+      {showJoinModal && (
+        <JoinRoomModal
+          movieTitle={title}
+          onJoin={handleCreateRoom}
+          onClose={() => setShowJoinModal(false)}
+        />
+      )}
+
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-[#0e0e12] border border-sv-red/30 text-white px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-slide-in-right backdrop-blur-md">

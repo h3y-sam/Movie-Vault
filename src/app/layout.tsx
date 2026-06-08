@@ -25,6 +25,12 @@ export const metadata: Metadata = {
     description: "Your Personal Netflix-Grade Streaming Discovery Platform",
     type: "website",
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "StremioTV",
+  },
 };
 
 export default function RootLayout({
@@ -34,6 +40,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <meta name="theme-color" content="#e11d48" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+      </head>
       <body className="bg-sv-bg text-sv-text min-h-dvh antialiased">
         <SecurityProvider>
           <Navbar />
@@ -41,6 +51,24 @@ export default function RootLayout({
           <Footer />
           <MobileNav />
         </SecurityProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/service-worker.js').then(
+                    function(registration) {
+                      console.log('SW registered:', registration.scope);
+                    },
+                    function(err) {
+                      console.log('SW registration failed:', err);
+                    }
+                  );
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

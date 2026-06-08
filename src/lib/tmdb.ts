@@ -1,20 +1,21 @@
 // TMDB API Client — uses real API if env token exists, otherwise mock data
 
 import { TMDBMovie, TMDBTVShow, PaginatedResponse } from '@/types/tmdb.types';
-import {
-  MOCK_TRENDING_MOVIES,
-  MOCK_BOLLYWOOD_MOVIES,
-  MOCK_TV_SHOWS,
-  MOCK_ANIME,
-  MOCK_TOP_RATED_MOVIES,
-  MOCK_CAST,
-} from './mockData';
 
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE = 'https://image.tmdb.org/t/p';
 
 const ACCESS_TOKEN = process.env.TMDB_ACCESS_TOKEN || process.env.NEXT_PUBLIC_TMDB_ACCESS_TOKEN;
 const USE_MOCK = !ACCESS_TOKEN;
+
+// Lazy-loaded mock data to prevent bundling it when USE_MOCK is false
+let cachedMock: any = null;
+async function getMock() {
+  if (!cachedMock) {
+    cachedMock = await import('./mockData');
+  }
+  return cachedMock;
+}
 
 export function getImageUrl(path: string | null, size: string = 'w500'): string {
   if (!path) return '/no-image.svg';
@@ -64,7 +65,8 @@ export const tmdb = {
   // Trending
   async getTrending(type: string = 'all', period: string = 'week') {
     if (USE_MOCK) {
-      return mockPaginated([...MOCK_TRENDING_MOVIES, ...MOCK_TV_SHOWS.slice(0, 4)]);
+      const mock = await getMock();
+      return mockPaginated([...mock.MOCK_TRENDING_MOVIES, ...mock.MOCK_TV_SHOWS.slice(0, 4)]);
     }
     return tmdbFetch<PaginatedResponse<TMDBMovie | TMDBTVShow>>(
       `/trending/${type}/${period}`
@@ -74,7 +76,8 @@ export const tmdb = {
   // Movies
   async getMovies(category: string = 'popular', page: number = 1) {
     if (USE_MOCK) {
-      return mockPaginated(MOCK_TRENDING_MOVIES);
+      const mock = await getMock();
+      return mockPaginated(mock.MOCK_TRENDING_MOVIES);
     }
     return tmdbFetch<PaginatedResponse<TMDBMovie>>(`/movie/${category}`, {
       page: page.toString(),
@@ -84,7 +87,8 @@ export const tmdb = {
   // Movie Detail
   async getMovieDetail(id: number) {
     if (USE_MOCK) {
-      const movie = [...MOCK_TRENDING_MOVIES, ...MOCK_TOP_RATED_MOVIES, ...MOCK_BOLLYWOOD_MOVIES].find(
+      const mock = await getMock();
+      const movie = [...mock.MOCK_TRENDING_MOVIES, ...mock.MOCK_TOP_RATED_MOVIES, ...mock.MOCK_BOLLYWOOD_MOVIES].find(
         (m) => m.id === id
       );
       if (movie) {
@@ -92,7 +96,7 @@ export const tmdb = {
           ...movie,
           runtime: 148,
           tagline: 'An epic cinematic experience',
-          credits: { cast: MOCK_CAST, crew: [] },
+          credits: { cast: mock.MOCK_CAST, crew: [] },
           videos: {
             results: [
               {
@@ -105,8 +109,8 @@ export const tmdb = {
               },
             ],
           },
-          similar: mockPaginated(MOCK_TRENDING_MOVIES.filter((m) => m.id !== id).slice(0, 6)),
-          recommendations: mockPaginated(MOCK_TOP_RATED_MOVIES.slice(0, 6)),
+          similar: mockPaginated(mock.MOCK_TRENDING_MOVIES.filter((m) => m.id !== id).slice(0, 6)),
+          recommendations: mockPaginated(mock.MOCK_TOP_RATED_MOVIES.slice(0, 6)),
           genres: movie.genre_ids.map((gid) => ({
             id: gid,
             name: getGenreLabel(gid),
@@ -123,7 +127,8 @@ export const tmdb = {
   // TV Shows
   async getTVShows(category: string = 'popular', page: number = 1) {
     if (USE_MOCK) {
-      return mockPaginated(MOCK_TV_SHOWS);
+      const mock = await getMock();
+      return mockPaginated(mock.MOCK_TV_SHOWS);
     }
     return tmdbFetch<PaginatedResponse<TMDBTVShow>>(`/tv/${category}`, {
       page: page.toString(),
@@ -133,12 +138,13 @@ export const tmdb = {
   // TV Detail
   async getTVDetail(id: number) {
     if (USE_MOCK) {
-      const show = [...MOCK_TV_SHOWS, ...MOCK_ANIME].find((s) => s.id === id);
+      const mock = await getMock();
+      const show = [...mock.MOCK_TV_SHOWS, ...mock.MOCK_ANIME].find((s) => s.id === id);
       if (show) {
         return {
           ...show,
           tagline: 'The greatest story ever told',
-          credits: { cast: MOCK_CAST, crew: [] },
+          credits: { cast: mock.MOCK_CAST, crew: [] },
           videos: {
             results: [
               {
@@ -151,8 +157,8 @@ export const tmdb = {
               },
             ],
           },
-          similar: mockPaginated(MOCK_TV_SHOWS.filter((s) => s.id !== id).slice(0, 6)),
-          recommendations: mockPaginated(MOCK_TV_SHOWS.slice(0, 6)),
+          similar: mockPaginated(mock.MOCK_TV_SHOWS.filter((s) => s.id !== id).slice(0, 6)),
+          recommendations: mockPaginated(mock.MOCK_TV_SHOWS.slice(0, 6)),
           genres: show.genre_ids.map((gid) => ({
             id: gid,
             name: getGenreLabel(gid),
@@ -197,14 +203,15 @@ export const tmdb = {
   // Discover
   async discover(type: 'movie' | 'tv', filters: Record<string, string>) {
     if (USE_MOCK) {
+      const mock = await getMock();
       if (type === 'movie') {
         const lang = filters.with_original_language;
-        if (lang === 'hi') return mockPaginated(MOCK_BOLLYWOOD_MOVIES);
-        return mockPaginated(MOCK_TRENDING_MOVIES);
+        if (lang === 'hi') return mockPaginated(mock.MOCK_BOLLYWOOD_MOVIES);
+        return mockPaginated(mock.MOCK_TRENDING_MOVIES);
       }
       const lang = filters.with_original_language;
-      if (lang === 'ja') return mockPaginated(MOCK_ANIME);
-      return mockPaginated(MOCK_TV_SHOWS);
+      if (lang === 'ja') return mockPaginated(mock.MOCK_ANIME);
+      return mockPaginated(mock.MOCK_TV_SHOWS);
     }
     return tmdbFetch<PaginatedResponse<TMDBMovie | TMDBTVShow>>(
       `/discover/${type}`,
@@ -215,11 +222,12 @@ export const tmdb = {
   // Search
   async search(query: string, page: number = 1) {
     if (USE_MOCK) {
+      const mock = await getMock();
       const allItems = [
-        ...MOCK_TRENDING_MOVIES.map((m) => ({ ...m, media_type: 'movie' as const })),
-        ...MOCK_TV_SHOWS.map((s) => ({ ...s, media_type: 'tv' as const })),
-        ...MOCK_BOLLYWOOD_MOVIES.map((m) => ({ ...m, media_type: 'movie' as const })),
-        ...MOCK_ANIME.map((s) => ({ ...s, media_type: 'tv' as const })),
+        ...mock.MOCK_TRENDING_MOVIES.map((m: any) => ({ ...m, media_type: 'movie' as const })),
+        ...mock.MOCK_TV_SHOWS.map((s: any) => ({ ...s, media_type: 'tv' as const })),
+        ...mock.MOCK_BOLLYWOOD_MOVIES.map((m: any) => ({ ...m, media_type: 'movie' as const })),
+        ...mock.MOCK_ANIME.map((s: any) => ({ ...s, media_type: 'tv' as const })),
       ];
       const q = query.toLowerCase();
       const filtered = allItems.filter(
@@ -237,8 +245,11 @@ export const tmdb = {
   },
 
   // Bollywood
-  async getBollywood(page: number = 1) {
-    if (USE_MOCK) return mockPaginated(MOCK_BOLLYWOOD_MOVIES);
+  async getBollywood(page: number = 1): Promise<PaginatedResponse<TMDBMovie>> {
+    if (USE_MOCK) {
+      const mock = await getMock();
+      return mockPaginated(mock.MOCK_BOLLYWOOD_MOVIES);
+    }
     return tmdbFetch<PaginatedResponse<TMDBMovie>>('/discover/movie', {
       with_original_language: 'hi',
       sort_by: 'popularity.desc',
@@ -247,8 +258,11 @@ export const tmdb = {
   },
 
   // Anime
-  async getAnime(page: number = 1) {
-    if (USE_MOCK) return mockPaginated(MOCK_ANIME);
+  async getAnime(page: number = 1): Promise<PaginatedResponse<TMDBTVShow>> {
+    if (USE_MOCK) {
+      const mock = await getMock();
+      return mockPaginated(mock.MOCK_ANIME);
+    }
     return tmdbFetch<PaginatedResponse<TMDBTVShow>>('/discover/tv', {
       with_genres: '16',
       with_keywords: '210024',
@@ -261,9 +275,10 @@ export const tmdb = {
   // Top Rated
   async getTopRated(type: 'movie' | 'tv' = 'movie', page: number = 1) {
     if (USE_MOCK) {
+      const mock = await getMock();
       return type === 'movie'
-        ? mockPaginated(MOCK_TOP_RATED_MOVIES)
-        : mockPaginated(MOCK_TV_SHOWS);
+        ? mockPaginated(mock.MOCK_TOP_RATED_MOVIES)
+        : mockPaginated(mock.MOCK_TV_SHOWS);
     }
     return tmdbFetch<PaginatedResponse<TMDBMovie | TMDBTVShow>>(
       `/${type}/top_rated`,

@@ -35,6 +35,7 @@ function SeriesContent() {
   const [showFilters, setShowFilters] = useState(false);
   const [seriesList, setSeriesList] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const { kidsMode } = useSettingsStore();
 
@@ -62,7 +63,11 @@ function SeriesContent() {
   useEffect(() => {
     async function loadFilteredData() {
       try {
-        setLoading(true);
+        if (page === 1) {
+          setLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
         const filters: Record<string, string> = {
           sort_by: sortBy,
           page: page.toString(),
@@ -100,12 +105,19 @@ function SeriesContent() {
         }
 
         const res = await tmdb.discover('tv', filters);
-        setSeriesList(res.results || []);
+        if (page === 1) {
+          setSeriesList(res.results || []);
+        } else {
+          setSeriesList((prev) => [...prev, ...(res.results || [])]);
+        }
       } catch (error) {
         console.error('Discover search failed:', error);
-        setSeriesList([]);
+        if (page === 1) {
+          setSeriesList([]);
+        }
       } finally {
         setLoading(false);
+        setLoadingMore(false);
       }
     }
     loadFilteredData();
@@ -400,28 +412,25 @@ function SeriesContent() {
             </div>
 
             {filteredSeries.length > 0 && (
-              <div className="flex items-center justify-center gap-4 mt-10">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1 || loading}
-                  className="px-4 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-wider text-[#9ca3af] hover:text-white hover:border-white transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer bg-[#13131a]"
-                >
-                  Previous
-                </button>
-                <span className="text-xs font-bold text-white uppercase tracking-widest bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 px-4 py-1.5 rounded-full select-none">
-                  Page {page}
-                </span>
-                <button
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={loading}
-                  className="px-4 py-2 rounded-full border border-white/10 text-xs font-bold uppercase tracking-wider text-[#9ca3af] hover:text-white hover:border-white transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer bg-[#13131a]"
-                >
-                  Next
-                </button>
-              </div>
-            )}
+               <div className="flex items-center justify-center mt-10">
+                 <button
+                   onClick={() => setPage((p) => p + 1)}
+                   disabled={loading || loadingMore}
+                   className="px-8 py-3 rounded-xl bg-sv-red hover:bg-sv-red-hover text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center gap-2 hover:scale-[1.03] active:scale-95 shadow-lg shadow-sv-red/10"
+                 >
+                   {loadingMore ? (
+                     <>
+                       <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                       Loading...
+                     </>
+                   ) : (
+                     'Load More'
+                   )}
+                 </button>
+               </div>
+             )}
 
-            {filteredSeries.length === 0 && (
+            {filteredSeries.length === 0 && !loading && (
               <div className="text-center py-20 bg-[#13131a]/40 rounded-xl border border-white/5 border-dashed p-6">
                 <p className="text-[#9ca3af] text-lg font-semibold">No TV series found matching your filters.</p>
                 <p className="text-[#6b7280] text-xs mt-1">Try resetting the filters or modifying your inputs.</p>

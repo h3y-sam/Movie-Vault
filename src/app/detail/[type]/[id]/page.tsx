@@ -220,7 +220,7 @@ export default function DetailPage({ params }: DetailPageProps) {
             {/* Action Buttons */}
             <div className="flex items-center gap-3 mb-8">
               <Link
-                href={`/watch/${mediaType}/${item.id}`}
+                href={`/watch/${mediaType}/${item.id}?play=true`}
                 className="flex items-center gap-2 bg-sv-red hover:bg-sv-red-hover text-white px-8 py-3 rounded-lg font-semibold text-base transition-all active:scale-95 shadow-lg shadow-sv-red/20 cursor-pointer"
               >
                 <Play className="w-5 h-5 fill-white" />
@@ -235,6 +235,13 @@ export default function DetailPage({ params }: DetailPageProps) {
                 <Download className="w-5 h-5" />
                 Download
               </a>
+              <Link
+                href={`/watch/${mediaType}/${item.id}?play=true`}
+                className="flex items-center gap-2 bg-[#e11d48]/10 hover:bg-[#e11d48]/20 border border-[#e11d48]/20 text-sv-red px-6 py-3 rounded-lg font-semibold text-base transition-all active:scale-95 cursor-pointer"
+              >
+                <Share2 className="w-5 h-5" />
+                Watch Together
+              </Link>
               <button
                 onClick={toggleWatchlist}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-base transition-all active:scale-95 ${

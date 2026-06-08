@@ -1,10 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Star, Play, Plus, Check } from 'lucide-react';
 import { TMDBMovie, TMDBTVShow, MediaItem } from '@/types/tmdb.types';
 import { getImageUrl } from '@/lib/tmdb';
-import { getGenreNames, getYear } from '@/lib/mockData';
+import { getYear } from '@/lib/mockData';
 import { useWatchlistStore } from '@/store/watchlistStore';
 
 interface MovieCardProps {
@@ -22,12 +23,43 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
 
   const { addItem, removeItem, isInWatchlist } = useWatchlistStore();
   const inList = isInWatchlist(item.id, mediaType);
+  
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [progressPercent, setProgressPercent] = useState<number>(0);
+
+  useEffect(() => {
+    const handleProgressCheck = () => {
+      try {
+        const historyStr = localStorage.getItem('streamvault-watch-history');
+        if (historyStr) {
+          const history = JSON.parse(historyStr);
+          const historyItem = history.find(
+            (h: any) => h.id === item.id && h.type === mediaType
+          );
+          if (historyItem?.progress?.percent) {
+            setProgressPercent(historyItem.progress.percent);
+          } else {
+            setProgressPercent(0);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    handleProgressCheck();
+
+    window.addEventListener('storage', handleProgressCheck);
+    return () => window.removeEventListener('storage', handleProgressCheck);
+  }, [item.id, mediaType]);
 
   const toggleWatchlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (inList) {
       removeItem(item.id, mediaType);
+      setToastMessage('Removed from My List ✗');
+      setTimeout(() => setToastMessage(null), 2500);
     } else {
       addItem({
         tmdbId: item.id,
@@ -38,6 +70,8 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
         voteAverage: item.vote_average,
         addedAt: new Date().toISOString(),
       });
+      setToastMessage('Added to My List ✓');
+      setTimeout(() => setToastMessage(null), 2500);
     }
   };
 
@@ -56,10 +90,10 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
 
   return (
     <div
-      className="movie-card group relative flex-shrink-0 w-[120px] sm:w-[140px] md:w-[160px] lg:w-[180px] rounded-xl overflow-hidden cursor-pointer shadow-md bg-[#13131a]"
+      className="movie-card group relative flex-shrink-0 w-[148px] sm:w-[152px] md:w-[160px] lg:w-[180px] rounded-xl overflow-hidden cursor-pointer shadow-md bg-[#13131a]"
       style={{ animationDelay: `${index * 50}ms` }}
     >
-      <Link href={`/detail/${mediaType}/${item.id}`} className="absolute inset-0 z-30" aria-label={`View details for ${title}`} />
+      <Link href={`/watch/${mediaType}/${item.id}?play=true`} className="absolute inset-0 z-30" aria-label={`Play ${title}`} />
       
       {/* Poster Image Container */}
       <div className="relative aspect-[2/3] w-full overflow-hidden">
@@ -109,9 +143,27 @@ export default function MovieCard({ item, index = 0 }: MovieCardProps) {
         {/* Bottom Title & Details (always visible with gradient) */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent z-15 flex flex-col justify-end p-3 pointer-events-none">
           <h3 className="text-white text-xs font-bold line-clamp-1 leading-snug">{title}</h3>
-          <p className="text-[#9ca3af] text-[9px] font-medium mt-0.5">{getYear(releaseDate)}</p>
+          <p className="text-[#9ca3af] text-[10px] font-medium mt-0.5">{getYear(releaseDate)}</p>
         </div>
+
+        {/* Continue Watching Progress Bar */}
+        {progressPercent > 0 && (
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-20">
+            <div 
+              className="h-full bg-sv-red transition-all duration-300" 
+              style={{ width: `${progressPercent}%` }} 
+            />
+          </div>
+        )}
       </div>
+
+      {/* Watchlist Toast Message (fixed at window level, outside relative box overflow) */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#0e0e12]/95 border border-[#8b5cf6]/30 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-slide-in-right backdrop-blur-md text-xs font-bold">
+          <span className="text-[#8b5cf6] font-bold">✓</span>
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }
