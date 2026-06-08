@@ -1,0 +1,4 @@
+#Mon Jun 08 22:17:47 IST 2026
+base.0=D\:\\CODING\\My Projects\\Video Streaming - VC app\\streamvault\\stremiotv-twa\\app\\build\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
+renamed.0=classes.dex
+path.0=classes.dex
