@@ -3,7 +3,7 @@
 import { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Play, Plus, Check, Star, Clock, Calendar, Globe, ArrowLeft, Share2, Download } from 'lucide-react';
-import { getImageUrl, getBackdropUrl, tmdb } from '@/lib/tmdb';
+import { getImageUrl, getBackdropUrl } from '@/lib/tmdb';
 import { getYear } from '@/lib/mockData';
 import ContentRow from '@/components/home/ContentRow';
 import { useWatchlistStore } from '@/store/watchlistStore';
@@ -25,13 +25,10 @@ export default function DetailPage({ params }: DetailPageProps) {
     async function loadData() {
       try {
         setLoading(true);
-        if (type === 'movie') {
-          const res = await tmdb.getMovieDetail(numericId);
-          setItem(res);
-        } else {
-          const res = await tmdb.getTVDetail(numericId);
-          setItem(res);
-        }
+        const res = await fetch(`/api/detail/${type}/${id}`);
+        if (!res.ok) throw new Error('Failed to fetch detail');
+        const data = await res.json();
+        setItem(data);
       } catch (err) {
         console.error('Failed to fetch detail:', err);
       } finally {
@@ -39,7 +36,7 @@ export default function DetailPage({ params }: DetailPageProps) {
       }
     }
     loadData();
-  }, [type, numericId]);
+  }, [type, id]);
 
   const { addItem, removeItem, isInWatchlist } = useWatchlistStore();
 
