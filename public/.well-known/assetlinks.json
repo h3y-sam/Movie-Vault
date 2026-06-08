@@ -6,7 +6,7 @@
     ],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.streamiotv.app",
+      "package_name": "com.stremiotv.app",
       "sha256_cert_fingerprints": [
         "8B:C8:16:A0:66:D7:12:69:35:C2:9E:4C:71:2C:05:E6:0B:BE:01:A2:E7:6F:E3:09:93:F0:48:10:0D:E5:43:FA"
       ]
