@@ -54,21 +54,21 @@ export default function HeroBanner({ items = [] }: HeroBannerProps) {
   const { title, year, type, genres } = currentItem ? getMediaInfo(currentItem) : { title: 'Discover Your Next Story', year: '', type: 'movie', genres: [] };
 
   return (
-    <section className="relative w-full min-h-[75vh] md:min-h-[85vh] flex flex-col justify-end px-6 md:px-16 pb-16 pt-48 overflow-hidden bg-black">
+    <section className="relative w-full min-h-screen flex flex-col justify-end px-6 md:px-16 pb-12 pt-24 md:pt-32 overflow-hidden bg-[#040508]">
       {/* Background Image Carousel with Fades */}
       {currentItem && (
         <div className="absolute inset-0 z-0">
           <div 
             className={`absolute inset-0 bg-cover bg-center transition-opacity duration-500 ease-in-out ${
-              fadeState === 'fade-in' ? 'opacity-40 md:opacity-50' : 'opacity-0'
+              fadeState === 'fade-in' ? 'opacity-60 md:opacity-75' : 'opacity-0'
             }`}
             style={{ 
               backgroundImage: `url(${getBackdropUrl(currentItem.backdrop_path, 'original')})`,
             }}
           />
           {/* Gradients to blend banner into the website */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#09090b] via-transparent to-[#09090b]/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#040508] via-[#040508]/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#040508] via-[#040508]/40 to-transparent" />
         </div>
       )}
 

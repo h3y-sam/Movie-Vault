@@ -59,7 +59,7 @@ export default function AnimePage() {
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 animate-fade-in">
               {anime.map((item, index) => (
-                <MovieCard key={item.id} item={item} index={index} />
+                <MovieCard key={`anime-${item.id}-${index}`} item={item} index={index} />
               ))}
             </div>
 

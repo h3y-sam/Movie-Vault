@@ -18,16 +18,31 @@ import {
   Download
 } from 'lucide-react';
 
+import { useRouter } from 'next/navigation';
+
 export default function LandingPage() {
+  const router = useRouter();
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.navigator) {
-      const ua = window.navigator.userAgent.toLowerCase();
-      setIsAndroid(/android/.test(ua));
+    if (typeof window !== 'undefined') {
+      // Detect if app is opened inside Android TWA (android-app:// referrer) or PWA standalone mode
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
+        || (window.navigator as any).standalone 
+        || document.referrer.includes('android-app://');
+        
+      if (isStandalone) {
+        router.replace('/browse');
+        return;
+      }
+
+      if (window.navigator.userAgent) {
+        const ua = window.navigator.userAgent.toLowerCase();
+        setIsAndroid(/android/.test(ua));
+      }
     }
-  }, []);
+  }, [router]);
 
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);

@@ -23,7 +23,7 @@ plugins {
 def twaManifest = [
     applicationId: 'com.stremiotv.app',
     hostName: 'stremiotv.vercel.app', // The domain being opened in the TWA.
-    launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
+    launchUrl: '/browse', // The start path for the TWA. Must be relative to the domain.
     name: 'StremioTV', // The application name.
     launcherName: 'StremioTV', // The name shown on the Android Launcher.
     themeColor: '#E11D48', // The color used for the status bar.

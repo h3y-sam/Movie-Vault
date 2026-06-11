@@ -40,7 +40,6 @@ export default async function BrowsePage() {
   const topRated = topRatedRes?.results || [];
   const bollywood = bollywoodRes?.results || [];
   const anime = animeRes?.results || [];
-
   const heroItems = trending.slice(0, 6);
   const newReleases = [...movies.slice(0, 6), ...tvShows.slice(0, 4)];
   const actionAdventure = trending.filter((item) => item.genre_ids?.includes(28) || item.genre_ids?.includes(12));
