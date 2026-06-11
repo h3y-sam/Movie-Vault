@@ -23,12 +23,12 @@
     
   </string>
     <string name="fallbackType" translatable="false">customtabs</string>
-    <string name="fullScopeUrl" translatable="false">http://localhost:8080/</string>
+    <string name="fullScopeUrl" translatable="false">https://stremiotv.vercel.app/</string>
     <string name="generatorApp" translatable="false">bubblewrap-cli</string>
     <string name="hostName" translatable="false">stremiotv.vercel.app</string>
     <string name="launchUrl" translatable="false">https://stremiotv.vercel.app/</string>
     <string name="launcherName" translatable="false">StremioTV</string>
     <string name="orientation" translatable="false">default</string>
     <string name="providerAuthority" translatable="false">com.stremiotv.app.fileprovider</string>
-    <string name="webManifestUrl" translatable="false">http://localhost:8080/manifest.json</string>
+    <string name="webManifestUrl" translatable="false">https://stremiotv.vercel.app/manifest.json</string>
 </resources>

@@ -73,7 +73,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" data-scroll-behavior="smooth">
       <head>
         <meta name="theme-color" content="#e11d48" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

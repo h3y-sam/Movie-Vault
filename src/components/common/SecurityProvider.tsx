@@ -89,32 +89,21 @@ export default function SecurityProvider({ children }: { children: React.ReactNo
     };
     document.addEventListener('dragstart', handleDragStart);
 
-    let devToolsDetectorInterval: ReturnType<typeof setInterval> | null = null;
+    const isLocalDev =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      // Also treat local network IPs as dev (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+      /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(window.location.hostname);
 
-    if (typeof window !== 'undefined') {
-      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        const emptyFn = () => {};
-        window.console.log = emptyFn;
-        window.console.info = emptyFn;
-        window.console.warn = emptyFn;
-        window.console.error = emptyFn;
-        window.console.debug = emptyFn;
-
-        devToolsDetectorInterval = setInterval(() => {
-          (function () {
-            try {
-              (function a(i: number): void {
-                if (("" + i / i).length !== 1 || i % 20 === 0) {
-                  (function () {}).constructor("debugger")();
-                } else {
-                  debugger;
-                }
-                a(++i);
-              })(0);
-            } catch (_) {}
-          })();
-        }, 800);
-      }
+    if (!isLocalDev) {
+      // Suppress console output in production only
+      const emptyFn = () => {};
+      window.console.log = emptyFn;
+      window.console.info = emptyFn;
+      window.console.warn = emptyFn;
+      window.console.error = emptyFn;
+      window.console.debug = emptyFn;
+      // Note: debugger trap removed — it freezes mobile browsers and breaks fetches
     }
 
     // Cleanup all listeners and restore window.open
@@ -125,9 +114,6 @@ export default function SecurityProvider({ children }: { children: React.ReactNo
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('dragstart', handleDragStart);
-      if (devToolsDetectorInterval !== null) {
-        clearInterval(devToolsDetectorInterval);
-      }
     };
   }, []);
 

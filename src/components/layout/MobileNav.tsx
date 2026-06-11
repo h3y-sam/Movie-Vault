@@ -15,6 +15,9 @@ const mobileNavItems = [
 export default function MobileNav() {
   const pathname = usePathname();
 
+  // Hide on landing page
+  if (pathname === '/') return null;
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-sv-bg/95 backdrop-blur-lg border-t border-sv-border">
       <div className="flex items-center justify-around h-16 px-2">

@@ -57,6 +57,9 @@ export default function Navbar() {
     }
   };
 
+  // Hide the navbar on the landing page — it has its own hero navigation
+  if (pathname === '/') return null;
+
   return (
     <>
     <nav

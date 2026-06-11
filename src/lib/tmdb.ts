@@ -5,8 +5,15 @@ import { TMDBMovie, TMDBTVShow, PaginatedResponse } from '@/types/tmdb.types';
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE = 'https://image.tmdb.org/t/p';
 
-const ACCESS_TOKEN = process.env.TMDB_ACCESS_TOKEN || process.env.NEXT_PUBLIC_TMDB_ACCESS_TOKEN;
+const ACCESS_TOKEN = process.env.TMDB_ACCESS_TOKEN;
 const USE_MOCK = !ACCESS_TOKEN;
+
+if (typeof window === 'undefined' && !ACCESS_TOKEN && process.env.NODE_ENV !== 'test') {
+  console.warn(
+    '[tmdb] TMDB_ACCESS_TOKEN is not set. Falling back to mock data.\n' +
+    'Add TMDB_ACCESS_TOKEN to your .env.local file (no NEXT_PUBLIC_ prefix).'
+  );
+}
 
 // Lazy-loaded mock data to prevent bundling it when USE_MOCK is false
 let cachedMock: any = null;
@@ -61,7 +68,7 @@ function mockPaginated<T>(items: T[]): PaginatedResponse<T> {
 
 // --- Public API ---
 
-export const tmdb = {
+const serverTmdb = {
   // Trending
   async getTrending(type: string = 'all', period: string = 'week'): Promise<PaginatedResponse<TMDBMovie | TMDBTVShow>> {
     if (USE_MOCK) {
@@ -286,6 +293,25 @@ export const tmdb = {
     );
   },
 };
+
+export const tmdb = new Proxy(serverTmdb, {
+  get(target, prop: string) {
+    if (typeof window !== 'undefined') {
+      return async (...args: any[]) => {
+        const res = await fetch('/api/tmdb', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: prop, args }),
+        });
+        if (!res.ok) {
+          throw new Error(`Failed to call TMDB action ${prop}`);
+        }
+        return res.json();
+      };
+    }
+    return Reflect.get(target, prop);
+  }
+}) as typeof serverTmdb;
 
 // Genre label helper
 import { GENRE_MAP, TV_GENRE_MAP } from './constants';

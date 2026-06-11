@@ -13,18 +13,18 @@
   "backgroundColor": "#09090B",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "http://localhost:8080/logo.png",
-  "maskableIconUrl": "http://localhost:8080/logo.png",
+  "iconUrl": "https://stremiotv.vercel.app/logo.png",
+  "maskableIconUrl": "https://stremiotv.vercel.app/logo.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "D:\\CODING\\My Projects\\Video Streaming - VC app\\streamvault\\stremiotv-twa\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "1",
-  "appVersionCode": 1,
+  "appVersionName": "2",
+  "appVersionCode": 2,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "http://localhost:8080/manifest.json",
+  "webManifestUrl": "https://stremiotv.vercel.app/manifest.json",
   "fallbackType": "customtabs",
   "features": {
     "playBilling": {
@@ -37,7 +37,7 @@
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fullScopeUrl": "http://localhost:8080/",
+  "fullScopeUrl": "https://stremiotv.vercel.app/",
   "minSdkVersion": 21,
   "orientation": "default",
   "fingerprints": [],
@@ -47,5 +47,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "1"
+  "appVersion": "2"
 }
